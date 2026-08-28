@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Edit2, Trash2, TrendingUp } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, TrendingUp, DollarSign, Scale } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { PageHeader } from '../components/ui/PageHeader'
+import { Button } from '../components/ui/Button'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { IncomeForm } from '../components/forms/IncomeForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { supabase } from '../lib/supabase'
@@ -14,6 +17,8 @@ import toast from 'react-hot-toast'
 export function Income() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const { data: incomeData, loading, refetch } = useSupabaseQuery('income', {
     orderBy: 'date',
@@ -25,15 +30,19 @@ export function Income() {
     ascending: false,
   })
 
-  async function handleDelete(id) {
-    if (!window.confirm('Are you sure you want to delete this sale record?')) return
+  async function handleDelete() {
+    if (!deleteId) return
+    setDeleting(true)
     try {
-      const { error } = await supabase.from('income').delete().eq('id', id)
+      const { error } = await supabase.from('income').delete().eq('id', deleteId)
       if (error) throw error
-      toast.success('Sale record deleted!')
+      toast.success('Sale record removed')
+      setDeleteId(null)
       refetch()
     } catch (err) {
-      toast.error(err.message || 'Failed to delete record.')
+      toast.error(err.message || 'Could not delete this sale.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -63,50 +72,54 @@ export function Income() {
       cell: (row) => (
         <div>
           <p className="font-semibold text-white">{row.buyer}</p>
-          {row.notes && <p className="text-xs text-slate-400 truncate max-w-xs">{row.notes}</p>}
+          {row.notes && <p className="max-w-xs truncate text-xs text-slate-400">{row.notes}</p>}
         </div>
       ),
     },
     {
-      header: 'Kg Sold',
+      header: 'Volume Sold',
       accessorKey: 'kg_sold',
       sortable: true,
-      cell: (row) => formatWeight(row.kg_sold),
-    },
-    {
-      header: 'Price / Kg',
-      accessorKey: 'price_per_kg',
-      sortable: true,
-      cell: (row) => formatCurrency(row.price_per_kg),
-    },
-    {
-      header: 'Total Amount',
-      accessorKey: 'total_amount',
-      sortable: true,
       cell: (row) => (
-        <span className="font-bold text-emerald-400">{formatCurrency(row.total_amount)}</span>
+        <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
       ),
     },
     {
-      header: 'Actions',
+      header: 'Price / kg',
+      accessorKey: 'price_per_kg',
+      sortable: true,
       cell: (row) => (
-        <div className="flex items-center gap-1">
+        <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_kg)}</span>
+      ),
+    },
+    {
+      header: 'Total Gross',
+      accessorKey: 'total_amount',
+      sortable: true,
+      cell: (row) => (
+        <span className="font-semibold text-emerald-300">{formatCurrency(row.total_amount)}</span>
+      ),
+    },
+    {
+      header: '',
+      cell: (row) => (
+        <div className="flex items-center justify-end gap-1">
           <button
             type="button"
             onClick={() => {
               setEditingItem(row)
               setModalOpen(true)
             }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
-            title="Edit sale"
+            className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
+            title="Edit record"
           >
-            <Edit2 size={15} />
+            <Pencil size={15} />
           </button>
           <button
             type="button"
-            onClick={() => handleDelete(row.id)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-500/10 hover:text-red-400"
-            title="Delete sale"
+            onClick={() => setDeleteId(row.id)}
+            className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
+            title="Delete record"
           >
             <Trash2 size={15} />
           </button>
@@ -117,78 +130,76 @@ export function Income() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Income & Sales Tracker
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Log calamansi deliveries, buyer contracts, and market transactions
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {incomeData.length > 0 && (
-            <button
-              type="button"
-              onClick={() => exportIncomeCSV(incomeData)}
-              className="flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
-            >
-              <Download size={15} />
-              <span>Export CSV</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => {
-              setEditingItem(null)
-              setModalOpen(true)
-            }}
-            className="flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95"
-          >
-            <Plus size={16} />
-            <span>Record Calamansi Sale</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Chips */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">Total Volume Sold</p>
-          <p className="mt-1 text-xl font-bold text-white">{formatWeight(totalKgSold)}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">Weighted Avg Price</p>
-          <p className="mt-1 text-xl font-bold text-emerald-400">{formatCurrency(avgPrice)} / kg</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">Gross Sales Revenue</p>
-          <p className="mt-1 text-xl font-bold text-emerald-400">{formatCurrency(totalRevenue)}</p>
-        </div>
-      </div>
-
-      {/* Table / Empty State */}
-      {loading ? (
-        <LoadingSpinner text="Loading sales records..." />
-      ) : incomeData.length === 0 ? (
-        <EmptyState
-          icon={TrendingUp}
-          title="No Calamansi Sales Recorded"
-          description="Log your first harvest batch sale to track market buyers and price trends."
-          action={
-            <button
-              type="button"
+      <PageHeader
+        eyebrow="Commercial Sales"
+        title="Income Ledger"
+        description="Track calamansi dispatches, volume in kg, price per kilo, and total buyer revenue."
+        actions={
+          <>
+            {incomeData.length > 0 && (
+              <Button variant="secondary" onClick={() => exportIncomeCSV(incomeData)}>
+                <Download size={15} />
+                Export CSV
+              </Button>
+            )}
+            <Button
               onClick={() => {
                 setEditingItem(null)
                 setModalOpen(true)
               }}
-              className="rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400"
+            >
+              <Plus size={16} />
+              Record Sale
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Volume Sold</span>
+            <Scale size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-semibold text-white">{formatWeight(totalKgSold)}</p>
+          <p className="mt-1 text-xs text-slate-400">{incomeData.length} recorded sales</p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Avg. Price Per Kg</span>
+            <TrendingUp size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(avgPrice)} / kg</p>
+          <p className="mt-1 text-xs text-slate-400">Weighted average price</p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Gross Revenue</span>
+            <DollarSign size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(totalRevenue)}</p>
+          <p className="mt-1 text-xs text-slate-400">All-time sales value</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <LoadingSpinner text="Loading sales ledger…" />
+      ) : incomeData.length === 0 ? (
+        <EmptyState
+          icon={TrendingUp}
+          title="No sales logged yet"
+          description="Log the first calamansi delivery to start tracking buyers, prices, and revenue performance."
+          action={
+            <Button
+              onClick={() => {
+                setEditingItem(null)
+                setModalOpen(true)
+              }}
             >
               Record First Sale
-            </button>
+            </Button>
           }
         />
       ) : (
@@ -196,15 +207,14 @@ export function Income() {
           columns={columns}
           data={incomeData}
           searchKeys={['buyer', 'notes', 'date']}
-          searchPlaceholder="Search buyer, date, notes..."
+          searchPlaceholder="Search buyer or notes…"
         />
       )}
 
-      {/* Add/Edit Modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingItem ? 'Edit Calamansi Sale' : 'Record Calamansi Sale'}
+        title={editingItem ? 'Edit Sale Record' : 'Record New Sale'}
       >
         <IncomeForm
           initialData={editingItem}
@@ -216,6 +226,16 @@ export function Income() {
           onCancel={() => setModalOpen(false)}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete this sale record?"
+        description="This entry will be permanently removed and deducted from gross income."
+        confirmLabel="Delete Sale"
+      />
     </div>
   )
 }

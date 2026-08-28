@@ -1,10 +1,13 @@
 import { useMemo } from 'react'
-import { Download, FileBarChart, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, ListChecks } from 'lucide-react'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { IncomeExpenseChart } from '../components/charts/IncomeExpenseChart'
 import { ExpenseBreakdown } from '../components/charts/ExpenseBreakdown'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { DataTable } from '../components/ui/DataTable'
+import { PageHeader } from '../components/ui/PageHeader'
+import { Panel } from '../components/ui/Panel'
+import { Button } from '../components/ui/Button'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { useDateRange } from '../hooks/useDateRange'
 import {
@@ -50,7 +53,6 @@ export function Reports() {
     [incomeData]
   )
 
-  // Monthly aggregated chart data
   const monthlyChartData = useMemo(() => {
     const map = {}
     incomeData.forEach((inc) => {
@@ -68,7 +70,6 @@ export function Reports() {
     return Object.values(map).sort((a, b) => a.period.localeCompare(b.period))
   }, [incomeData, expenseData])
 
-  // Category expense aggregated data
   const categoryChartData = useMemo(() => {
     const map = {}
     expenseData.forEach((exp) => {
@@ -78,7 +79,6 @@ export function Reports() {
     return Object.entries(map).map(([category, amount]) => ({ category, amount }))
   }, [expenseData])
 
-  // Unified ledger list
   const combinedTransactions = useMemo(() => {
     const inc = incomeData.map((i) => ({
       id: `inc-${i.id}`,
@@ -86,7 +86,7 @@ export function Reports() {
       date: i.date,
       title: i.buyer,
       subtitle: `${i.kg_sold} kg @ ₱${i.price_per_kg}/kg`,
-      category: 'Calamansi Sale',
+      category: 'Fruit Sale',
       amount: Number(i.total_amount),
       isPositive: true,
       notes: i.notes,
@@ -113,8 +113,10 @@ export function Reports() {
       sortable: true,
       cell: (row) => (
         <span
-          className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold ${
-            row.isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+            row.isPositive
+              ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-400/20'
+              : 'bg-rose-500/10 text-rose-300 ring-rose-400/20'
           }`}
         >
           {row.isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
@@ -129,7 +131,7 @@ export function Reports() {
       cell: (row) => <span className="font-medium text-white">{formatDate(row.date)}</span>,
     },
     {
-      header: 'Description',
+      header: 'Description / Item',
       accessorKey: 'title',
       sortable: true,
       cell: (row) => (
@@ -140,18 +142,18 @@ export function Reports() {
       ),
     },
     {
-      header: 'Category',
+      header: 'Classification',
       accessorKey: 'category',
       sortable: true,
-      cell: (row) => <span className="text-xs text-slate-300">{row.category}</span>,
+      cell: (row) => <span className="text-xs font-medium text-slate-300">{row.category}</span>,
     },
     {
       header: 'Amount',
       accessorKey: 'amount',
       sortable: true,
       cell: (row) => (
-        <span className={`font-bold ${row.isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-          {row.isPositive ? '+' : '-'}
+        <span className={`font-display font-semibold ${row.isPositive ? 'text-emerald-300' : 'text-rose-300'}`}>
+          {row.isPositive ? '+' : '−'}
           {formatCurrency(row.amount)}
         </span>
       ),
@@ -160,105 +162,99 @@ export function Reports() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Filter */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Financial & Harvest Reports
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Generate filtered P&L statements and export comprehensive CSV books
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <DateRangeFilter
-            preset={preset}
-            setPreset={setPreset}
-            customFrom={customFrom}
-            setCustomFrom={setCustomFrom}
-            customTo={customTo}
-            setCustomTo={setCustomTo}
-            presets={PRESETS}
-          />
-
-          <button
-            type="button"
-            onClick={() => exportReportCSV(incomeData, expenseData)}
-            disabled={combinedTransactions.length === 0}
-            className="flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
-          >
-            <Download size={15} />
-            <span>Export Statement CSV</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Financial Intelligence"
+        title="Reports & Ledger"
+        description="Full profit and loss analysis with downloadable transaction audit records."
+        actions={
+          <>
+            <DateRangeFilter
+              preset={preset}
+              setPreset={setPreset}
+              customFrom={customFrom}
+              setCustomFrom={setCustomFrom}
+              customTo={customTo}
+              setCustomTo={setCustomTo}
+              presets={PRESETS}
+            />
+            <Button
+              onClick={() => exportReportCSV(incomeData, expenseData)}
+              disabled={combinedTransactions.length === 0}
+            >
+              <Download size={15} />
+              Export Statement CSV
+            </Button>
+          </>
+        }
+      />
 
       {loading ? (
-        <LoadingSpinner text="Generating financial statement..." />
+        <LoadingSpinner text="Compiling financial statement…" />
       ) : (
         <>
-          {/* Summary Banner */}
-          <div className="grid grid-cols-1 gap-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-xl sm:grid-cols-4">
-            <div>
-              <p className="text-xs font-medium text-slate-400">Period Income</p>
-              <p className="mt-1 text-2xl font-extrabold text-emerald-400">
-                {formatCurrency(totalIncome)}
-              </p>
-              <p className="text-[11px] text-slate-500">{formatWeight(totalKgSold)} sold</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em]">Gross Income</span>
+                <TrendingUp size={18} className="text-emerald-400/80" />
+              </div>
+              <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(totalIncome)}</p>
+              <p className="mt-1 text-xs text-slate-400">{formatWeight(totalKgSold)} calamansi sold</p>
             </div>
-            <div>
-              <p className="text-xs font-medium text-slate-400">Period Expenses</p>
-              <p className="mt-1 text-2xl font-extrabold text-red-400">
-                {formatCurrency(totalExpense)}
-              </p>
-              <p className="text-[11px] text-slate-500">{expenseData.length} expense entries</p>
+
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Expenses</span>
+                <TrendingDown size={18} className="text-rose-400/80" />
+              </div>
+              <p className="mt-2 font-display text-2xl font-semibold text-rose-300">{formatCurrency(totalExpense)}</p>
+              <p className="mt-1 text-xs text-slate-400">{expenseData.length} expense transactions</p>
             </div>
-            <div>
-              <p className="text-xs font-medium text-slate-400">Net Profit / Loss</p>
-              <p
-                className={`mt-1 text-2xl font-extrabold ${
-                  netProfit >= 0 ? 'text-blue-400' : 'text-amber-400'
-                }`}
-              >
+
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em]">Net Position</span>
+                <DollarSign size={18} className={netProfit >= 0 ? 'text-emerald-400/80' : 'text-amber-400/80'} />
+              </div>
+              <p className={`mt-2 font-display text-2xl font-semibold ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
                 {formatCurrency(netProfit)}
               </p>
-              <p className="text-[11px] text-slate-500">
-                {totalIncome > 0
-                  ? `${((netProfit / totalIncome) * 100).toFixed(1)}% margin`
-                  : 'No sales recorded'}
+              <p className="mt-1 text-xs text-slate-400">
+                {totalIncome > 0 ? `${((netProfit / totalIncome) * 100).toFixed(1)}% operating margin` : 'No income in period'}
               </p>
             </div>
-            <div>
-              <p className="text-xs font-medium text-slate-400">Total Entries</p>
-              <p className="mt-1 text-2xl font-extrabold text-white">
-                {combinedTransactions.length}
-              </p>
-              <p className="text-[11px] text-slate-500">In current filter</p>
+
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em]">Statement Lines</span>
+                <ListChecks size={18} className="text-sky-400/80" />
+              </div>
+              <p className="mt-2 font-display text-2xl font-semibold text-white">{combinedTransactions.length}</p>
+              <p className="mt-1 text-xs text-slate-400">Transactions within filter</p>
             </div>
           </div>
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl backdrop-blur-xl lg:col-span-2">
-              <h3 className="mb-4 text-base font-bold text-white">Period Cash Flow</h3>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <Panel className="lg:col-span-2" title="Period Cash Flow" description="Monthly breakdown of revenue vs expenditure">
               <IncomeExpenseChart data={monthlyChartData} />
-            </div>
-
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl backdrop-blur-xl">
-              <h3 className="mb-4 text-base font-bold text-white">Cost Distribution</h3>
+            </Panel>
+            <Panel title="Expense Categories" description="Cost distribution breakdown">
               <ExpenseBreakdown data={categoryChartData} />
-            </div>
+            </Panel>
           </div>
 
-          {/* Unified Statement Table */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-bold text-white">Detailed Ledger Statement</h3>
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-white">Full Consolidated Ledger</h2>
+                <p className="text-xs text-slate-400">Unified chronology of farm sales and operational expenses</p>
+              </div>
+            </div>
             <DataTable
               columns={columns}
               data={combinedTransactions}
               searchKeys={['title', 'category', 'subtitle', 'date']}
-              searchPlaceholder="Search statement ledger..."
+              searchPlaceholder="Search the ledger…"
             />
           </div>
         </>

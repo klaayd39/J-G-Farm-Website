@@ -1,88 +1,80 @@
 import { NavLink } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  TrendingUp,
-  Receipt,
-  Trees,
-  FileBarChart,
-  LogOut,
-  Sparkles,
-} from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/income', label: 'Income', icon: TrendingUp },
-  { to: '/expenses', label: 'Expenses', icon: Receipt },
-  { to: '/harvests', label: 'Harvests', icon: Trees },
-  { to: '/reports', label: 'Reports', icon: FileBarChart },
-]
+import { NAV_ITEMS } from '../../nav'
+import { BrandMark } from '../ui/BrandMark'
 
 export function Sidebar({ onClose }) {
   const { user, profile, signOut } = useAuth()
+  const displayName = profile?.full_name || user?.email || 'Account'
+  const initial = displayName.trim().charAt(0).toUpperCase()
 
   return (
-    <aside className="flex h-full w-64 flex-col justify-between border-r border-slate-800 bg-slate-950/90 p-4 backdrop-blur-xl">
-      <div className="space-y-6">
-        {/* Brand */}
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-slate-950 shadow-md shadow-emerald-500/20">
-            <Sparkles size={20} className="stroke-[2.5]" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight text-white">J&G FARM</h1>
-            <p className="text-[11px] font-medium text-emerald-400">Calamansi Tracker</p>
+    <aside className="flex h-full w-64 flex-col border-r border-white/8 bg-[#091310]/95 px-4 py-5 shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center gap-3 px-1 pb-6">
+        <BrandMark size={38} />
+        <div className="min-w-0">
+          <p className="font-display text-[1.1rem] font-semibold leading-tight text-white tracking-tight">J&amp;G Farm</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="text-[11px] font-medium tracking-wide text-emerald-400/90">Calamansi ops</p>
           </div>
         </div>
-
-        {/* Navigation links */}
-        <nav className="space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-emerald-500/15 text-emerald-400 shadow-sm shadow-emerald-500/10 ring-1 ring-emerald-500/30'
-                      : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
-                  }`
-                }
-              >
-                <Icon size={18} />
-                <span>{item.label}</span>
-              </NavLink>
-            )
-          })}
-        </nav>
       </div>
 
-      {/* User profile & Logout */}
-      <div className="border-t border-slate-800/80 pt-4">
-        <div className="mb-3 flex items-center gap-3 px-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">
-            {(profile?.full_name || user?.email || 'U')[0].toUpperCase()}
+      <div className="mb-2 flex items-center justify-between px-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Navigation</span>
+        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-400">Live</span>
+      </div>
+
+      <nav className="flex-1 space-y-1">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/25 shadow-sm shadow-emerald-500/10'
+                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon size={18} strokeWidth={isActive ? 2.2 : 1.75} className={isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'} />
+                  <span>{item.label}</span>
+                  {isActive && (
+                    <span className="absolute right-2.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          )
+        })}
+      </nav>
+
+      <div className="mt-4 rounded-2xl border border-white/8 bg-gradient-to-b from-white/[0.05] to-transparent p-3.5 shadow-inner">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20">
+            {initial}
           </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-xs font-semibold text-white">
-              {profile?.full_name || user?.email || 'User'}
-            </p>
-            <p className="truncate text-[10px] text-emerald-400/80 uppercase tracking-wider">
-              {profile?.role || 'Staff'}
-            </p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-white">{displayName}</p>
+            <p className="truncate text-[10px] capitalize font-medium text-slate-400">{profile?.role || 'Farm Staff'}</p>
           </div>
         </div>
-
         <button
           type="button"
           onClick={signOut}
-          className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-300"
         >
-          <LogOut size={16} />
-          <span>Sign Out</span>
+          <LogOut size={14} />
+          Sign out
         </button>
       </div>
     </aside>

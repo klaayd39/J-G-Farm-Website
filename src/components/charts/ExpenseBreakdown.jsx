@@ -4,25 +4,29 @@ import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../utils/fo
 export function ExpenseBreakdown({ data = [] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/40 text-sm text-slate-500">
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-white/6 bg-white/[0.02] text-sm text-slate-500">
         No expense data available for the selected period.
       </div>
     )
   }
 
+  const totalExpense = data.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+
   const chartData = data.map((item) => ({
     name: CATEGORY_LABELS[item.category] || item.category,
     value: Number(item.amount),
     categoryKey: item.category,
+    percentage: totalExpense > 0 ? ((Number(item.amount) / totalExpense) * 100).toFixed(1) : 0,
   }))
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const item = payload[0]
+      const item = payload[0].payload
       return (
-        <div className="rounded-xl border border-slate-700 bg-slate-900/95 p-3 shadow-xl backdrop-blur-md">
-          <p className="text-xs font-semibold text-slate-300">{item.name}</p>
-          <p className="mt-1 text-sm font-bold text-white">{formatCurrency(item.value)}</p>
+        <div className="rounded-2xl border border-white/12 bg-[#0c1613]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.name}</p>
+          <p className="mt-1 text-base font-bold text-white">{formatCurrency(item.value)}</p>
+          <p className="text-xs font-medium text-emerald-400">{item.percentage}% of total expenses</p>
         </div>
       )
     }
@@ -37,10 +41,12 @@ export function ExpenseBreakdown({ data = [] }) {
             data={chartData}
             cx="50%"
             cy="45%"
-            innerRadius={55}
-            outerRadius={80}
-            paddingAngle={4}
+            innerRadius={58}
+            outerRadius={84}
+            paddingAngle={3}
             dataKey="value"
+            stroke="rgba(8, 17, 14, 0.8)"
+            strokeWidth={2}
           >
             {chartData.map((entry, index) => (
               <Cell
@@ -52,8 +58,8 @@ export function ExpenseBreakdown({ data = [] }) {
           <Tooltip content={<CustomTooltip />} />
           <Legend
             verticalAlign="bottom"
-            wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }}
-            formatter={(value) => <span className="text-slate-300">{value}</span>}
+            wrapperStyle={{ paddingTop: '12px', fontSize: '11px' }}
+            formatter={(value) => <span className="text-slate-300 font-medium">{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

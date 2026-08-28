@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Edit2, Trash2, Trees } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, Trees, CalendarDays, Award } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { PageHeader } from '../components/ui/PageHeader'
+import { Button } from '../components/ui/Button'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { HarvestForm } from '../components/forms/HarvestForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { supabase } from '../lib/supabase'
@@ -14,21 +17,27 @@ import toast from 'react-hot-toast'
 export function Harvests() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const { data: harvestData, loading, refetch } = useSupabaseQuery('harvests', {
     orderBy: 'date',
     ascending: false,
   })
 
-  async function handleDelete(id) {
-    if (!window.confirm('Are you sure you want to delete this harvest record?')) return
+  async function handleDelete() {
+    if (!deleteId) return
+    setDeleting(true)
     try {
-      const { error } = await supabase.from('harvests').delete().eq('id', id)
+      const { error } = await supabase.from('harvests').delete().eq('id', deleteId)
       if (error) throw error
-      toast.success('Harvest entry deleted!')
+      toast.success('Harvest entry deleted')
+      setDeleteId(null)
       refetch()
     } catch (err) {
-      toast.error(err.message || 'Failed to delete harvest.')
+      toast.error(err.message || 'Could not delete this harvest.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -54,49 +63,51 @@ export function Harvests() {
       cell: (row) => <span className="font-medium text-white">{formatDate(row.date)}</span>,
     },
     {
-      header: 'Block / Area',
+      header: 'Plot / Block Area',
       accessorKey: 'block_name',
       sortable: true,
       cell: (row) => (
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">
-          <Trees size={13} className="text-emerald-400" />
-          {row.block_name || 'General'}
+        <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          {row.block_name || 'General Plot'}
         </span>
       ),
     },
     {
-      header: 'Yield (Kg)',
+      header: 'Yield Harvested',
       accessorKey: 'kg_harvested',
       sortable: true,
       cell: (row) => (
-        <span className="font-bold text-white">{formatWeight(row.kg_harvested)}</span>
+        <span className="font-display font-semibold text-white tracking-tight">
+          {formatWeight(row.kg_harvested)}
+        </span>
       ),
     },
     {
-      header: 'Notes',
+      header: 'Notes & Field Info',
       accessorKey: 'notes',
       cell: (row) => <span className="text-xs text-slate-400">{row.notes || '—'}</span>,
     },
     {
-      header: 'Actions',
+      header: '',
       cell: (row) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           <button
             type="button"
             onClick={() => {
               setEditingItem(row)
               setModalOpen(true)
             }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
-            title="Edit harvest"
+            className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
+            title="Edit batch"
           >
-            <Edit2 size={15} />
+            <Pencil size={15} />
           </button>
           <button
             type="button"
-            onClick={() => handleDelete(row.id)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-500/10 hover:text-red-400"
-            title="Delete harvest"
+            onClick={() => setDeleteId(row.id)}
+            className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
+            title="Delete batch"
           >
             <Trash2 size={15} />
           </button>
@@ -107,80 +118,82 @@ export function Harvests() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Calamansi Harvest Logs
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Track daily picking yields per orchard block and monitor tree plot productivity
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {harvestData.length > 0 && (
-            <button
-              type="button"
-              onClick={() => exportHarvestsCSV(harvestData)}
-              className="flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
-            >
-              <Download size={15} />
-              <span>Export CSV</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => {
-              setEditingItem(null)
-              setModalOpen(true)
-            }}
-            className="flex min-h-[44px] items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95"
-          >
-            <Plus size={16} />
-            <span>Record Harvest Batch</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">All-Time Calamansi Picked</p>
-          <p className="mt-1 text-xl font-bold text-emerald-400">{formatWeight(totalHarvestKg)}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">Total Harvest Sessions</p>
-          <p className="mt-1 text-xl font-bold text-white">{harvestData.length} logs</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-          <p className="text-xs text-slate-400">Top Producing Block</p>
-          <p className="mt-1 text-xl font-bold text-white">
-            {blockBreakdown[0] ? `${blockBreakdown[0][0]} (${formatWeight(blockBreakdown[0][1])})` : 'N/A'}
-          </p>
-        </div>
-      </div>
-
-      {/* Table / Empty State */}
-      {loading ? (
-        <LoadingSpinner text="Loading harvest records..." />
-      ) : harvestData.length === 0 ? (
-        <EmptyState
-          icon={Trees}
-          title="No Harvests Recorded Yet"
-          description="Log picking batches per tree block to know which orchard zones generate the highest yield."
-          action={
-            <button
-              type="button"
+      <PageHeader
+        eyebrow="Orchard Yield"
+        title="Harvest Batches"
+        description="Monitor calamansi yield by orchard block, picking frequency, and harvest trends."
+        actions={
+          <>
+            {harvestData.length > 0 && (
+              <Button variant="secondary" onClick={() => exportHarvestsCSV(harvestData)}>
+                <Download size={15} />
+                Export CSV
+              </Button>
+            )}
+            <Button
               onClick={() => {
                 setEditingItem(null)
                 setModalOpen(true)
               }}
-              className="rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400"
+            >
+              <Plus size={16} />
+              Record Harvest
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Yield Picked</span>
+            <Trees size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatWeight(totalHarvestKg)}</p>
+          <p className="mt-1 text-xs text-slate-400">Total volume from all blocks</p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Picking Sessions</span>
+            <CalendarDays size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-semibold text-white">{harvestData.length}</p>
+          <p className="mt-1 text-xs text-slate-400">Completed harvest sessions</p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Top Producing Plot</span>
+            <Award size={18} className="text-emerald-400/80" />
+          </div>
+          <p className="mt-2 font-display text-xl font-semibold text-white truncate">
+            {blockBreakdown[0]
+              ? `${blockBreakdown[0][0]}`
+              : '—'}
+          </p>
+          <p className="mt-1 text-xs text-emerald-400/90">
+            {blockBreakdown[0] ? `${formatWeight(blockBreakdown[0][1])} harvested` : 'No data recorded'}
+          </p>
+        </div>
+      </div>
+
+      {loading ? (
+        <LoadingSpinner text="Loading harvest records…" />
+      ) : harvestData.length === 0 ? (
+        <EmptyState
+          icon={Trees}
+          title="No harvests logged yet"
+          description="Log picking sessions by orchard plot to identify which blocks generate the highest yields."
+          action={
+            <Button
+              onClick={() => {
+                setEditingItem(null)
+                setModalOpen(true)
+              }}
             >
               Record First Harvest
-            </button>
+            </Button>
           }
         />
       ) : (
@@ -188,15 +201,14 @@ export function Harvests() {
           columns={columns}
           data={harvestData}
           searchKeys={['block_name', 'notes', 'date']}
-          searchPlaceholder="Search block name, date, notes..."
+          searchPlaceholder="Search block or notes…"
         />
       )}
 
-      {/* Add/Edit Modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingItem ? 'Edit Harvest Record' : 'Record Harvest Batch'}
+        title={editingItem ? 'Edit Harvest Entry' : 'Record Harvest Batch'}
       >
         <HarvestForm
           initialData={editingItem}
@@ -207,6 +219,16 @@ export function Harvests() {
           onCancel={() => setModalOpen(false)}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete this harvest entry?"
+        description="This cannot be undone. Associated sales records will remain intact without this batch link."
+        confirmLabel="Delete Harvest"
+      />
     </div>
   )
 }

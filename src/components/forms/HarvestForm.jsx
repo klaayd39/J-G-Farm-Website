@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+import { Button } from '../ui/Button'
 
 export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -38,7 +39,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       } else {
         const { error } = await supabase.from('harvests').insert([payload])
         if (error) throw error
-        toast.success('Harvest logged!')
+        toast.success('Harvest batch logged!')
       }
 
       onSuccess?.()
@@ -53,71 +54,63 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Date *</label>
+          <label className="field-label">Date *</label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Block / Plot Area *</label>
+          <label className="field-label">Block / Plot Area *</label>
           <input
             type="text"
             required
             placeholder="e.g. Block A (Old Trees), North Hillside"
             value={formData.block_name}
             onChange={(e) => setFormData({ ...formData, block_name: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Kg Harvested *</label>
+          <label className="field-label">Kg Harvested (Yield) *</label>
           <input
             type="number"
             step="0.01"
             min="0.01"
             required
-            placeholder="e.g. 245.5"
+            placeholder="e.g. 245.50"
             value={formData.kg_harvested}
             onChange={(e) => setFormData({ ...formData, kg_harvested: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Notes</label>
+        <label className="field-label">Notes & Field Conditions</label>
         <textarea
           rows={2}
           placeholder="Fruit grade, weather condition, harvesters involved..."
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+          className="field-input min-h-[80px]"
         />
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+      <div className="mt-6 flex items-center justify-end gap-2.5 pt-2">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="min-h-[44px] rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-          >
+          <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="min-h-[44px] rounded-xl bg-emerald-500 px-6 py-2 text-sm font-semibold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : initialData ? 'Update Harvest' : 'Save Harvest'}
-        </button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Saving harvest…' : initialData ? 'Update Harvest' : 'Save Harvest Batch'}
+        </Button>
       </div>
     </form>
   )

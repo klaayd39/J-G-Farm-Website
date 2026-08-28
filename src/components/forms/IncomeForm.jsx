@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO } from '../../utils/formatters'
+import { todayISO, formatCurrency } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+import { Button } from '../ui/Button'
+import { PhilippinePeso } from 'lucide-react'
 
 export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -16,7 +18,7 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
     notes: initialData?.notes || '',
   })
 
-  const totalPreview = (Number(formData.kg_sold || 0) * Number(formData.price_per_kg || 0)).toFixed(2)
+  const totalPreview = Number(formData.kg_sold || 0) * Number(formData.price_per_kg || 0)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -40,11 +42,11 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
       if (initialData?.id) {
         const { error } = await supabase.from('income').update(payload).eq('id', initialData.id)
         if (error) throw error
-        toast.success('Income entry updated successfully!')
+        toast.success('Sale entry updated!')
       } else {
         const { error } = await supabase.from('income').insert([payload])
         if (error) throw error
-        toast.success('Income logged successfully!')
+        toast.success('Sale logged successfully!')
       }
 
       onSuccess?.()
@@ -59,30 +61,30 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Date *</label>
+          <label className="field-label">Date *</label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Buyer / Market *</label>
+          <label className="field-label">Buyer / Market *</label>
           <input
             type="text"
             required
             placeholder="e.g. Balintawak Market, Local Wholesaler"
             value={formData.buyer}
             onChange={(e) => setFormData({ ...formData, buyer: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Kg Sold *</label>
+          <label className="field-label">Kg Sold (Volume) *</label>
           <input
             type="number"
             step="0.01"
@@ -91,12 +93,12 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
             placeholder="e.g. 150.5"
             value={formData.kg_sold}
             onChange={(e) => setFormData({ ...formData, kg_sold: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Price per Kg (₱) *</label>
+          <label className="field-label">Price per Kg (₱) *</label>
           <input
             type="number"
             step="0.01"
@@ -105,23 +107,23 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
             placeholder="e.g. 45.00"
             value={formData.price_per_kg}
             onChange={(e) => setFormData({ ...formData, price_per_kg: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
       </div>
 
       {harvests.length > 0 && (
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Link to Harvest Batch (Optional)</label>
+          <label className="field-label">Link to Harvest Batch (Optional)</label>
           <select
             value={formData.harvest_id}
             onChange={(e) => setFormData({ ...formData, harvest_id: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           >
-            <option value="">-- None --</option>
+            <option value="">-- Standalone delivery (No batch) --</option>
             {harvests.map((h) => (
               <option key={h.id} value={h.id}>
-                {h.date} | {h.block_name || 'General'} ({h.kg_harvested} kg)
+                {h.date} | {h.block_name || 'General'} ({h.kg_harvested} kg harvested)
               </option>
             ))}
           </select>
@@ -129,38 +131,37 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
       )}
 
       <div>
-        <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Notes</label>
+        <label className="field-label">Notes & Remarks</label>
         <textarea
           rows={2}
-          placeholder="Optional notes or batch details..."
+          placeholder="Optional payment notes, delivery terms or vehicle details..."
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+          className="field-input min-h-[80px]"
         />
       </div>
 
-      <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-sm text-emerald-300">
-        <span>Estimated Total Amount:</span>
-        <span className="text-base font-bold text-emerald-400">₱{Number(totalPreview).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+      <div className="flex items-center justify-between rounded-2xl border border-emerald-500/25 bg-emerald-950/40 p-4 text-sm text-emerald-200">
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-emerald-500/20 p-1.5 text-emerald-300">
+            <PhilippinePeso size={16} />
+          </div>
+          <span className="font-medium">Gross Total Calculation</span>
+        </div>
+        <span className="font-display text-lg font-semibold text-emerald-300">
+          {formatCurrency(totalPreview)}
+        </span>
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+      <div className="mt-6 flex items-center justify-end gap-2.5 pt-2">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="min-h-[44px] rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-          >
+          <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="min-h-[44px] rounded-xl bg-emerald-500 px-6 py-2 text-sm font-semibold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : initialData ? 'Update Sale' : 'Save Sale'}
-        </button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Saving entry…' : initialData ? 'Update Sale' : 'Save Sale Record'}
+        </Button>
       </div>
     </form>
   )

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
 
 export function DataTable({
   columns,
@@ -48,88 +48,119 @@ export function DataTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       {searchKeys.length > 0 && (
-        <div className="flex items-center justify-between">
-          <input
-            type="text"
-            placeholder={searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full max-w-xs rounded-xl border border-slate-700 bg-slate-900/80 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          />
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-sm">
+            <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="field-input max-w-none pl-10 pr-9 text-xs"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span>
+              {sortedData.length} {sortedData.length === 1 ? 'record found' : 'records found'}
+            </span>
+          </div>
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-700/80 bg-slate-900/60 shadow-xl backdrop-blur-md">
-        <table className="w-full text-left text-sm text-slate-300">
-          <thead className="border-b border-slate-800 bg-slate-950/70 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <tr>
-              {columns.map((col, idx) => (
-                <th
-                  key={idx}
-                  className={`px-4 py-3.5 ${col.sortable ? 'cursor-pointer select-none hover:text-white' : ''} ${col.className || ''}`}
-                  onClick={() => col.sortable && handleSort(col.accessorKey)}
-                >
-                  <div className="flex items-center gap-1.5">
-                    {col.header}
-                    {col.sortable && <ArrowUpDown size={13} className="text-slate-500" />}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            {paginatedData.length === 0 ? (
+      <div className="overflow-hidden rounded-2xl border border-white/8 bg-[#0d1714]/80 shadow-xl backdrop-blur-md">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-200">
+            <thead className="border-b border-white/8 bg-black/30 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500">
-                  No records found.
-                </td>
+                {columns.map((col, idx) => (
+                  <th
+                    key={idx}
+                    className={`whitespace-nowrap px-4 py-3.5 ${col.sortable ? 'cursor-pointer select-none transition-colors hover:text-emerald-300' : ''} ${col.className || ''}`}
+                    onClick={() => col.sortable && handleSort(col.accessorKey)}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {col.header}
+                      {col.sortable && (
+                        sortConfig.key === col.accessorKey ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp size={13} className="text-emerald-400" />
+                          ) : (
+                            <ArrowDown size={13} className="text-emerald-400" />
+                          )
+                        ) : (
+                          <ArrowUpDown size={12} className="text-slate-500 opacity-60" />
+                        )
+                      )}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ) : (
-              paginatedData.map((row, rowIdx) => (
-                <tr
-                  key={row.id || rowIdx}
-                  className="transition-colors hover:bg-slate-800/40"
-                >
-                  {columns.map((col, colIdx) => (
-                    <td key={colIdx} className={`px-4 py-3 ${col.className || ''}`}>
-                      {col.cell ? col.cell(row) : row[col.accessorKey]}
-                    </td>
-                  ))}
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-4 py-12 text-center text-sm text-slate-500">
+                    No matching records found.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginatedData.map((row, rowIdx) => (
+                  <tr key={row.id || rowIdx} className="transition-colors hover:bg-white/[0.035]">
+                    {columns.map((col, colIdx) => (
+                      <td key={colIdx} className={`px-4 py-3.5 ${col.className || ''}`}>
+                        {col.cell ? col.cell(row) : row[col.accessorKey]}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 text-xs text-slate-400">
+        <div className="flex items-center justify-between px-1 text-xs text-slate-400">
           <span>
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} records
+            Showing <strong className="font-semibold text-slate-200">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+            <strong className="font-semibold text-slate-200">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{' '}
+            <strong className="font-semibold text-slate-200">{sortedData.length}</strong>
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg border border-slate-700 p-1.5 hover:bg-slate-800 disabled:opacity-40"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
+              aria-label="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="px-2">
-              {currentPage} / {totalPages}
+            <span className="min-w-14 text-center font-medium text-slate-300">
+              {currentPage} <span className="text-slate-600">/</span> {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="rounded-lg border border-slate-700 p-1.5 hover:bg-slate-800 disabled:opacity-40"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
+              aria-label="Next page"
             >
               <ChevronRight size={16} />
             </button>

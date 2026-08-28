@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO, CATEGORY_LABELS } from '../../utils/formatters'
-import { UploadCloud, Image as ImageIcon } from 'lucide-react'
+import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { Button } from '../ui/Button'
 
 export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -36,7 +37,7 @@ export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
 
       const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(data.path)
       setReceiptUrl(publicUrlData.publicUrl)
-      toast.success('Receipt uploaded!')
+      toast.success('Receipt photo attached!')
     } catch (err) {
       toast.error(err.message || 'Failed to upload image. (Ensure receipts bucket exists)')
     } finally {
@@ -70,7 +71,7 @@ export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
       } else {
         const { error } = await supabase.from('expenses').insert([payload])
         if (error) throw error
-        toast.success('Expense logged!')
+        toast.success('Expense logged successfully!')
       }
 
       onSuccess?.()
@@ -85,22 +86,22 @@ export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Date *</label>
+          <label className="field-label">Date *</label>
           <input
             type="date"
             required
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Category *</label>
+          <label className="field-label">Category *</label>
           <select
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           >
             {Object.entries(CATEGORY_LABELS).map(([catKey, catLabel]) => (
               <option key={catKey} value={catKey}>
@@ -111,19 +112,19 @@ export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
         </div>
 
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Description *</label>
+          <label className="field-label">Description / Item *</label>
           <input
             type="text"
             required
             placeholder="e.g. 14-14-14 Complete Fertilizer (2 sacks), Pruning labor"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Amount (₱) *</label>
+          <label className="field-label">Cost Amount (₱) *</label>
           <input
             type="number"
             step="0.01"
@@ -132,61 +133,63 @@ export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
             placeholder="e.g. 2400.00"
             value={formData.amount}
             onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            className="mt-1 block min-h-[48px] w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Receipt / Photo</label>
-          <div className="mt-1 flex items-center gap-2">
-            <label className="flex min-h-[48px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-400 hover:border-emerald-500 hover:text-white">
-              <UploadCloud size={16} />
-              <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
+          <label className="field-label">Receipt / Voucher Photo</label>
+          <div className="flex items-center gap-2">
+            <label className="flex min-h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-3.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-400 hover:bg-emerald-500/5 hover:text-white">
+              <UploadCloud size={16} className="text-emerald-400" />
+              <span>{uploading ? 'Uploading…' : receiptUrl ? 'Change Receipt' : 'Upload Receipt'}</span>
               <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </label>
             {receiptUrl && (
-              <a
-                href={receiptUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-emerald-400 hover:bg-slate-700"
-                title="View uploaded receipt"
-              >
-                <ImageIcon size={20} />
-              </a>
+              <div className="flex items-center gap-1.5">
+                <a
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-[46px] w-[46px] items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                  title="View attached receipt"
+                >
+                  <ImageIcon size={18} />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setReceiptUrl('')}
+                  className="flex h-[46px] w-9 items-center justify-center rounded-xl border border-white/10 text-slate-500 hover:text-rose-400"
+                  title="Remove receipt"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium uppercase tracking-wider text-slate-400">Notes</label>
+        <label className="field-label">Notes & Supplier Details</label>
         <textarea
           rows={2}
-          placeholder="Supplier info, voucher numbers, or additional context..."
+          placeholder="Supplier name, official receipt number, or plot notes..."
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="mt-1 block w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+          className="field-input min-h-[80px]"
         />
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-3 pt-2">
+      <div className="mt-6 flex items-center justify-end gap-2.5 pt-2">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="min-h-[44px] rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
-          >
+          <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         )}
-        <button
-          type="submit"
-          disabled={loading || uploading}
-          className="min-h-[44px] rounded-xl bg-emerald-500 px-6 py-2 text-sm font-semibold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : initialData ? 'Update Expense' : 'Save Expense'}
-        </button>
+        <Button type="submit" disabled={loading || uploading}>
+          {loading ? 'Saving expense…' : initialData ? 'Update Expense' : 'Save Expense Record'}
+        </Button>
       </div>
     </form>
   )
