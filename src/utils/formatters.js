@@ -52,6 +52,8 @@ export const CATEGORY_LABELS = {
   irrigation: 'Irrigation',
   tools_equipment: 'Tools & Equipment',
   transport: 'Transport',
+  gas: 'Gas',
+  meal: 'Meal',
   land_rent: 'Land Rent',
   other: 'Other',
 }
@@ -66,6 +68,8 @@ export const CATEGORY_COLORS = {
   irrigation: '#06b6d4',
   tools_equipment: '#8b5cf6',
   transport: '#ec4899',
+  gas: '#eab308',
+  meal: '#14b8a6',
   land_rent: '#f97316',
   other: '#6b7280',
 }
