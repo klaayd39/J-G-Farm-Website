@@ -5,7 +5,7 @@ import { NAV_ITEMS } from '../../nav'
 import { BrandMark } from '../ui/BrandMark'
 
 export function Sidebar({ onClose }) {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, isOwner, signOut } = useAuth()
   const displayName = profile?.full_name || user?.email || 'Account'
   const initial = displayName.trim().charAt(0).toUpperCase()
 
