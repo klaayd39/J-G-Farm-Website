@@ -44,8 +44,10 @@ export function exportIncomeCSV(data) {
   const columns = [
     { label: 'Date', accessor: (r) => formatDate(r.date) },
     { label: 'Buyer/Market', accessor: (r) => r.buyer },
-    { label: 'Kg Sold', accessor: (r) => r.kg_sold },
-    { label: 'Price per Kg (₱)', accessor: (r) => r.price_per_kg },
+    { label: 'Number of Red Bags', accessor: (r) => r.num_red_bags || '-' },
+    { label: 'Price Per Red Bag (₱)', accessor: (r) => r.price_per_red_bag || '-' },
+    { label: 'Kg Sold', accessor: (r) => r.kg_sold || '-' },
+    { label: 'Price per Kg (₱)', accessor: (r) => r.price_per_kg || '-' },
     { label: 'Total Amount (₱)', accessor: (r) => r.total_amount },
     { label: 'Notes', accessor: (r) => r.notes },
   ]

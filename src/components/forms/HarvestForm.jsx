@@ -65,18 +65,6 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
         </div>
 
         <div>
-          <label className="field-label">Block / Plot Area *</label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Block A (Old Trees), North Hillside"
-            value={formData.block_name}
-            onChange={(e) => setFormData({ ...formData, block_name: e.target.value })}
-            className="field-input"
-          />
-        </div>
-
-        <div className="sm:col-span-2">
           <label className="field-label">Kg Harvested (Yield) *</label>
           <input
             type="number"

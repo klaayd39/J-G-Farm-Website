@@ -98,9 +98,16 @@ CREATE TABLE IF NOT EXISTS income (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   buyer TEXT NOT NULL DEFAULT '',
-  kg_sold NUMERIC(10,2) NOT NULL CHECK (kg_sold > 0),
-  price_per_kg NUMERIC(10,2) NOT NULL CHECK (price_per_kg > 0),
-  total_amount NUMERIC(12,2) GENERATED ALWAYS AS (kg_sold * price_per_kg) STORED,
+  kg_sold NUMERIC(10,2) DEFAULT 0,
+  price_per_kg NUMERIC(10,2) DEFAULT 0,
+  num_red_bags NUMERIC(10,2) DEFAULT 0,
+  price_per_red_bag NUMERIC(10,2) DEFAULT 0,
+  total_amount NUMERIC(12,2) GENERATED ALWAYS AS (
+    CASE 
+      WHEN (kg_sold * price_per_kg) > 0 THEN (kg_sold * price_per_kg)
+      ELSE (num_red_bags * price_per_red_bag)
+    END
+  ) STORED,
   harvest_id UUID REFERENCES harvests(id) ON DELETE SET NULL,
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()

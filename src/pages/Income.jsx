@@ -77,20 +77,40 @@ export function Income() {
       ),
     },
     {
-      header: 'Volume Sold',
+      header: 'Volume / Units',
       accessorKey: 'kg_sold',
       sortable: true,
-      cell: (row) => (
-        <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
-      ),
+      cell: (row) => {
+        if (row.num_red_bags) {
+          return (
+            <div>
+              <span className="font-medium text-slate-200">{row.num_red_bags} red bags</span>
+              {Number(row.kg_sold) > 0 && (
+                <span className="block text-xs text-slate-400">({formatWeight(row.kg_sold)})</span>
+              )}
+            </div>
+          )
+        }
+        return <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
+      },
     },
     {
-      header: 'Price / kg',
+      header: 'Unit Price',
       accessorKey: 'price_per_kg',
       sortable: true,
-      cell: (row) => (
-        <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_kg)}</span>
-      ),
+      cell: (row) => {
+        if (row.price_per_red_bag) {
+          return (
+            <div>
+              <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_red_bag)} / bag</span>
+              {Number(row.price_per_kg) > 0 && (
+                <span className="block text-xs text-slate-400">({formatCurrency(row.price_per_kg)}/kg)</span>
+              )}
+            </div>
+          )
+        }
+        return <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_kg)} / kg</span>
+      },
     },
     {
       header: 'Total Gross',

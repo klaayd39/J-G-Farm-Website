@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Pencil, Trash2, Trees, CalendarDays, Award } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, Trees, Users } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -25,6 +25,8 @@ export function Harvests() {
     ascending: false,
   })
 
+  const { data: profileData } = useSupabaseQuery('profiles')
+
   async function handleDelete() {
     if (!deleteId) return
     setDeleting(true)
@@ -46,14 +48,12 @@ export function Harvests() {
     [harvestData]
   )
 
-  const blockBreakdown = useMemo(() => {
-    const map = {}
-    harvestData.forEach((h) => {
-      const block = h.block_name || 'General'
-      map[block] = (map[block] || 0) + Number(h.kg_harvested || 0)
-    })
-    return Object.entries(map).sort((a, b) => b[1] - a[1])
-  }, [harvestData])
+  const totalHarvestersCount = useMemo(() => {
+    if (profileData && profileData.length > 0) {
+      return profileData.length
+    }
+    return 1
+  }, [profileData])
 
   const columns = [
     {
@@ -121,7 +121,7 @@ export function Harvests() {
       <PageHeader
         eyebrow="Orchard Yield"
         title="Harvest Batches"
-        description="Monitor calamansi yield by orchard block, picking frequency, and harvest trends."
+        description="Monitor calamansi yield, picking records, and harvester team output."
         actions={
           <>
             {harvestData.length > 0 && (
@@ -143,38 +143,23 @@ export function Harvests() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Yield Picked</span>
             <Trees size={18} className="text-emerald-400/80" />
           </div>
           <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatWeight(totalHarvestKg)}</p>
-          <p className="mt-1 text-xs text-slate-400">Total volume from all blocks</p>
+          <p className="mt-1 text-xs text-slate-400">Total volume recorded</p>
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Picking Sessions</span>
-            <CalendarDays size={18} className="text-emerald-400/80" />
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Harvester</span>
+            <Users size={18} className="text-emerald-400/80" />
           </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-white">{harvestData.length}</p>
-          <p className="mt-1 text-xs text-slate-400">Completed harvest sessions</p>
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Top Producing Plot</span>
-            <Award size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-xl font-semibold text-white truncate">
-            {blockBreakdown[0]
-              ? `${blockBreakdown[0][0]}`
-              : '—'}
-          </p>
-          <p className="mt-1 text-xs text-emerald-400/90">
-            {blockBreakdown[0] ? `${formatWeight(blockBreakdown[0][1])} harvested` : 'No data recorded'}
-          </p>
+          <p className="mt-2 font-display text-2xl font-semibold text-white">{totalHarvestersCount}</p>
+          <p className="mt-1 text-xs text-slate-400">Active registered farm workers</p>
         </div>
       </div>
 
