@@ -162,7 +162,7 @@ export function Harvests() {
             <Users size={18} className="text-emerald-400/80" />
           </div>
           <p className="mt-2 font-display text-2xl font-semibold text-white">{totalHarvestersCount}</p>
-          <p className="mt-1 text-xs text-slate-400">Active registered farm workers</p>
+          <p className="mt-1 text-xs text-slate-400">Total harvesters logged across batches</p>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export function Harvests() {
         <EmptyState
           icon={Trees}
           title="No harvests logged yet"
-          description="Log picking sessions by orchard plot to identify which blocks generate the highest yields."
+          description="Log picking batches, volume yield, and harvester headcount to track harvest records."
           action={
             <Button
               onClick={() => {
