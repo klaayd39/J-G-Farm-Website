@@ -13,6 +13,7 @@ export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [role, setRole] = useState('staff')
   const [loading, setLoading] = useState(false)
 
   const { signIn, signUp } = useAuth()
@@ -24,7 +25,7 @@ export function Login() {
 
     try {
       if (isSignUp) {
-        await signUp(email, password, fullName)
+        await signUp(email, password, fullName, role)
         toast.success('Account created! Please sign in.')
         setIsSignUp(false)
       } else {
@@ -152,24 +153,56 @@ export function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
-              <div>
-                <label className="field-label" htmlFor="fullName">
-                  Full Name *
-                </label>
-                <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="fullName"
-                    type="text"
-                    required
-                    autoComplete="name"
-                    placeholder="e.g. Juan Dela Cruz"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="field-input pl-10"
-                  />
+              <>
+                <div>
+                  <label className="field-label" htmlFor="fullName">
+                    Full Name *
+                  </label>
+                  <div className="relative">
+                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      id="fullName"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      placeholder="e.g. Juan Dela Cruz"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="field-input pl-10"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <label className="field-label">Account Role *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRole('staff')}
+                      className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all ${
+                        role === 'staff'
+                          ? 'border-emerald-500 bg-emerald-500/10 text-white ring-1 ring-emerald-500/30'
+                          : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'
+                      }`}
+                    >
+                      <span className="text-xs font-bold">Field Staff</span>
+                      <span className="text-[10px] text-slate-400">Log harvests &amp; costs</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('owner')}
+                      className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all ${
+                        role === 'owner'
+                          ? 'border-emerald-500 bg-emerald-500/10 text-white ring-1 ring-emerald-500/30'
+                          : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'
+                      }`}
+                    >
+                      <span className="text-xs font-bold">Farm Owner</span>
+                      <span className="text-[10px] text-slate-400">Full P&amp;L &amp; sales view</span>
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
             <div>

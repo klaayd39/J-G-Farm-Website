@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 
 export function Dashboard() {
-  const { profile, user } = useAuth()
+  const { profile, user, isOwner } = useAuth()
   const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, filters, PRESETS } =
     useDateRange('thisMonth')
 
@@ -48,7 +48,7 @@ export function Dashboard() {
     filters,
   })
 
-  const loading = incomeLoading || expenseLoading || harvestLoading
+  const loading = (isOwner && incomeLoading) || expenseLoading || harvestLoading
 
   const totalIncome = useMemo(
     () => incomeData.reduce((sum, item) => sum + Number(item.total_amount || 0), 0),
@@ -94,20 +94,37 @@ export function Dashboard() {
     return Object.entries(map).map(([category, amount]) => ({ category, amount }))
   }, [expenseData])
 
+  const blockBreakdown = useMemo(() => {
+    const map = {}
+    harvestData.forEach((h) => {
+      const block = h.block_name || 'General'
+      map[block] = (map[block] || 0) + Number(h.kg_harvested || 0)
+    })
+    return Object.entries(map).sort((a, b) => b[1] - a[1])
+  }, [harvestData])
+
   const recentTransactions = useMemo(() => {
-    const inc = incomeData.map((i) => ({ ...i, txType: 'income' }))
-    const exp = expenseData.map((e) => ({ ...e, txType: 'expense' }))
-    return [...inc, ...exp]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 6)
-  }, [incomeData, expenseData])
+    if (isOwner) {
+      const inc = incomeData.map((i) => ({ ...i, txType: 'income' }))
+      const exp = expenseData.map((e) => ({ ...e, txType: 'expense' }))
+      return [...inc, ...exp]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 6)
+    }
+    // Staff only sees expense logs
+    return expenseData.map((e) => ({ ...e, txType: 'expense' })).slice(0, 6)
+  }, [incomeData, expenseData, isOwner])
 
   return (
     <div className="space-y-7">
       <PageHeader
-        eyebrow="Orchard Operations"
+        eyebrow={isOwner ? 'Executive Dashboard' : 'Field Operations Hub'}
         title={`Welcome back, ${firstName}`}
-        description="Comprehensive summary of harvest volume, buyer sales, and field expenditures."
+        description={
+          isOwner
+            ? 'Comprehensive summary of harvest yield, buyer revenue, operating costs, and profit.'
+            : 'Track picking batches, orchard blocks, and field operational costs.'
+        }
         actions={
           <DateRangeFilter
             preset={preset}
@@ -125,67 +142,125 @@ export function Dashboard() {
         <LoadingSpinner text="Computing orchard figures…" />
       ) : (
         <>
+          {/* Metrics Grid */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Card
-              title="Gross Income"
-              value={formatCurrency(totalIncome)}
-              subtitle={`${incomeData.length} sales recorded`}
-              icon={TrendingUp}
-              color="emerald"
-            />
-            <Card
-              title="Total Expenses"
-              value={formatCurrency(totalExpense)}
-              subtitle={`${expenseData.length} expense entries`}
-              icon={Receipt}
-              color="red"
-            />
-            <Card
-              title="Net Profit"
-              value={formatCurrency(netProfit)}
-              subtitle={
-                margin === null
-                  ? 'No sales in this period'
-                  : `${margin >= 0 ? 'Positive Margin' : 'Operating Deficit'} · ${margin.toFixed(1)}%`
-              }
-              icon={PiggyBank}
-              color={netProfit >= 0 ? 'emerald' : 'amber'}
-            />
-            <Card
-              title="Total Harvested"
+              title="Harvest Picked"
               value={formatWeight(totalHarvestKg)}
               subtitle={`${harvestData.length} picking batches`}
               icon={Trees}
               color="blue"
             />
+            <Card
+              title="Field Expenses"
+              value={formatCurrency(totalExpense)}
+              subtitle={`${expenseData.length} recorded items`}
+              icon={Receipt}
+              color="red"
+            />
+            {isOwner ? (
+              <>
+                <Card
+                  title="Gross Revenue"
+                  value={formatCurrency(totalIncome)}
+                  subtitle={`${incomeData.length} buyer sales`}
+                  icon={TrendingUp}
+                  color="emerald"
+                />
+                <Card
+                  title="Net Profit"
+                  value={formatCurrency(netProfit)}
+                  subtitle={
+                    margin === null
+                      ? 'No sales in period'
+                      : `${margin >= 0 ? 'Operating Profit' : 'Operating Deficit'} · ${margin.toFixed(1)}%`
+                  }
+                  icon={PiggyBank}
+                  color={netProfit >= 0 ? 'emerald' : 'amber'}
+                />
+              </>
+            ) : (
+              <>
+                <Card
+                  title="Top Plot"
+                  value={blockBreakdown[0] ? blockBreakdown[0][0] : '—'}
+                  subtitle={
+                    blockBreakdown[0]
+                      ? `${formatWeight(blockBreakdown[0][1])} harvested`
+                      : 'No harvest data'
+                  }
+                  icon={TrendingUp}
+                  color="emerald"
+                />
+                <Card
+                  title="Average Batch"
+                  value={
+                    harvestData.length > 0
+                      ? formatWeight(totalHarvestKg / harvestData.length)
+                      : '0 kg'
+                  }
+                  subtitle="Average yield per picking"
+                  icon={PiggyBank}
+                  color="emerald"
+                />
+              </>
+            )}
           </div>
 
+          {/* Charts Row */}
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <Panel
-              className="lg:col-span-2"
-              title="Cash Flow & Operating Trends"
-              description="Monthly comparison between calamansi sales and farm upkeep"
-            >
-              <IncomeExpenseChart data={monthlyChartData} />
-            </Panel>
-            <Panel title="Expense Allocation" description="Cost share by operational category">
-              <ExpenseBreakdown data={categoryChartData} />
-            </Panel>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <Panel
-              className="lg:col-span-2"
-              title="Recent Activity"
-              description="Latest recorded income deliveries and field expenses"
-              action={
-                <Link
-                  to="/reports"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 transition-colors hover:text-emerald-300"
+            {isOwner ? (
+              <>
+                <Panel
+                  className="lg:col-span-2"
+                  title="Cash Flow & Operating Trends"
+                  description="Monthly comparison between calamansi sales and farm upkeep"
                 >
-                  <span>Full Ledger</span>
-                  <ChevronRight size={13} />
-                </Link>
+                  <IncomeExpenseChart data={monthlyChartData} />
+                </Panel>
+                <Panel title="Expense Allocation" description="Cost share by operational category">
+                  <ExpenseBreakdown data={categoryChartData} />
+                </Panel>
+              </>
+            ) : (
+              <Panel
+                className="lg:col-span-3"
+                title="Expense Category Distribution"
+                description="Share of costs logged for fertilizers, labor, irrigation, and maintenance"
+              >
+                <ExpenseBreakdown data={categoryChartData} />
+              </Panel>
+            )}
+          </div>
+
+          {/* Recent Activity & Quick Actions Row */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <Panel
+              className="lg:col-span-2"
+              title={isOwner ? 'Recent Farm Activity' : 'Recent Field Expenditures'}
+              description={
+                isOwner
+                  ? 'Latest recorded income deliveries and field expenses'
+                  : 'Latest operational expenses logged from the orchard'
+              }
+              action={
+                isOwner ? (
+                  <Link
+                    to="/reports"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 transition-colors hover:text-emerald-300"
+                  >
+                    <span>Full Ledger</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                ) : (
+                  <Link
+                    to="/expenses"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 transition-colors hover:text-emerald-300"
+                  >
+                    <span>View All Expenses</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                )
               }
             >
               {recentTransactions.length === 0 ? (
@@ -238,32 +313,8 @@ export function Dashboard() {
               )}
             </Panel>
 
-            <Panel title="Quick Actions" description="Field data recording shortcuts">
+            <Panel title="Field Actions" description="Fast data entry from the field">
               <div className="space-y-2.5">
-                <Link
-                  to="/income"
-                  className="group flex items-center justify-between rounded-xl border border-white/8 bg-gradient-to-r from-emerald-950/40 to-transparent p-3.5 text-sm font-semibold text-slate-200 transition-all hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-white hover:translate-x-0.5"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <div className="rounded-lg bg-emerald-500/20 p-1.5 text-emerald-300 transition-transform group-hover:scale-110">
-                      <Plus size={15} />
-                    </div>
-                    Record Sale
-                  </span>
-                  <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-300" />
-                </Link>
-                <Link
-                  to="/expenses"
-                  className="group flex items-center justify-between rounded-xl border border-white/8 bg-gradient-to-r from-rose-950/40 to-transparent p-3.5 text-sm font-semibold text-slate-200 transition-all hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-white hover:translate-x-0.5"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <div className="rounded-lg bg-rose-500/20 p-1.5 text-rose-300 transition-transform group-hover:scale-110">
-                      <Plus size={15} />
-                    </div>
-                    Log Expense
-                  </span>
-                  <ChevronRight size={14} className="text-slate-500 group-hover:text-rose-300" />
-                </Link>
                 <Link
                   to="/harvests"
                   className="group flex items-center justify-between rounded-xl border border-white/8 bg-gradient-to-r from-sky-950/40 to-transparent p-3.5 text-sm font-semibold text-slate-200 transition-all hover:border-sky-400/30 hover:bg-sky-500/10 hover:text-white hover:translate-x-0.5"
@@ -272,16 +323,46 @@ export function Dashboard() {
                     <div className="rounded-lg bg-sky-500/20 p-1.5 text-sky-300 transition-transform group-hover:scale-110">
                       <Plus size={15} />
                     </div>
-                    Add Harvest Batch
+                    Record Harvest Batch
                   </span>
                   <ChevronRight size={14} className="text-slate-500 group-hover:text-sky-300" />
                 </Link>
+
+                <Link
+                  to="/expenses"
+                  className="group flex items-center justify-between rounded-xl border border-white/8 bg-gradient-to-r from-rose-950/40 to-transparent p-3.5 text-sm font-semibold text-slate-200 transition-all hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-white hover:translate-x-0.5"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <div className="rounded-lg bg-rose-500/20 p-1.5 text-rose-300 transition-transform group-hover:scale-110">
+                      <Plus size={15} />
+                    </div>
+                    Log Field Expense
+                  </span>
+                  <ChevronRight size={14} className="text-slate-500 group-hover:text-rose-300" />
+                </Link>
+
+                {isOwner && (
+                  <Link
+                    to="/income"
+                    className="group flex items-center justify-between rounded-xl border border-white/8 bg-gradient-to-r from-emerald-950/40 to-transparent p-3.5 text-sm font-semibold text-slate-200 transition-all hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-white hover:translate-x-0.5"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <div className="rounded-lg bg-emerald-500/20 p-1.5 text-emerald-300 transition-transform group-hover:scale-110">
+                        <Plus size={15} />
+                      </div>
+                      Record Buyer Sale
+                    </span>
+                    <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-300" />
+                  </Link>
+                )}
               </div>
 
               <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-white/6 bg-white/[0.02] p-3.5 text-xs leading-relaxed text-slate-400">
                 <Sparkles size={16} className="shrink-0 text-emerald-400 mt-0.5" />
                 <p>
-                  Tip: Log picking batches first in <strong className="text-slate-200 font-semibold">Harvests</strong>, then link sales when deliveries are dispatched.
+                  {isOwner
+                    ? 'Tip: Record harvest picking batches first, then attach sales to track price per kilo.'
+                    : 'Tip: Log tree batches right after picking, and attach receipt photos for any farm supplies bought.'}
                 </p>
               </div>
             </Panel>

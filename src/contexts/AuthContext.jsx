@@ -10,12 +10,18 @@ export function AuthProvider({ children }) {
 
   // Fetch profile for the current user
   async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (!error && data) {
+        setProfile(data)
+      }
+    } catch {
+      // Fallback
+    }
   }
 
   useEffect(() => {
@@ -51,12 +57,15 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  async function signUp(email, password, fullName) {
+  async function signUp(email, password, fullName, role = 'staff') {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          role,
+        },
       },
     })
     if (error) throw error
@@ -69,9 +78,14 @@ export function AuthProvider({ children }) {
     setProfile(null)
   }
 
+  const isOwner = (profile?.role || 'owner') === 'owner'
+  const isStaff = profile?.role === 'staff'
+
   const value = {
     user,
     profile,
+    isOwner,
+    isStaff,
     loading,
     signIn,
     signUp,
@@ -92,3 +106,4 @@ export function useAuth() {
   }
   return context
 }
+

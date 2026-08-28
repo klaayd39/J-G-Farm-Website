@@ -28,7 +28,7 @@ export function Sidebar({ onClose }) {
       </div>
 
       <nav className="flex-1 space-y-1">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner).map((item) => {
           const Icon = item.icon
           return (
             <NavLink
