@@ -53,6 +53,15 @@ body {
   background: rgba(16, 185, 129, 0.4);
 }
 
+/* Hide scrollbar for clean horizontal tab bars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 input,
 select,
 textarea {

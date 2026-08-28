@@ -50,8 +50,8 @@ export function DataTable({
   return (
     <div className="space-y-3.5">
       {searchKeys.length > 0 && (
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full max-w-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-sm">
             <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
@@ -61,7 +61,7 @@ export function DataTable({
                 setSearchTerm(e.target.value)
                 setCurrentPage(1)
               }}
-              className="field-input max-w-none pl-10 pr-9 text-xs"
+              className="field-input w-full pl-10 pr-9 text-xs"
             />
             {searchTerm && (
               <button
@@ -74,7 +74,7 @@ export function DataTable({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 self-end sm:self-auto">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
             <span>
               {sortedData.length} {sortedData.length === 1 ? 'record found' : 'records found'}
