@@ -46,13 +46,6 @@ export function Harvests() {
     [harvestData]
   )
 
-  const totalHarvestersCount = useMemo(() => {
-    return harvestData.reduce(
-      (sum, item) => sum + (Number(item.num_harvesters) || 0),
-      0
-    )
-  }, [harvestData])
-
   const columns = [
     {
       header: 'Date',
@@ -141,23 +134,14 @@ export function Harvests() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
         <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Yield Picked</span>
             <Trees size={18} className="text-emerald-400/80" />
           </div>
           <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatWeight(totalHarvestKg)}</p>
-          <p className="mt-1 text-xs text-slate-400">Total volume recorded</p>
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Harvester</span>
-            <Users size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-white">{totalHarvestersCount}</p>
-          <p className="mt-1 text-xs text-slate-400">Total harvesters logged across batches</p>
+          <p className="mt-1 text-xs text-slate-400">Total volume recorded across all harvest batches</p>
         </div>
       </div>
 
