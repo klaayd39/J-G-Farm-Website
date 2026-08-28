@@ -49,11 +49,14 @@ export function Harvests() {
   )
 
   const totalHarvestersCount = useMemo(() => {
-    if (profileData && profileData.length > 0) {
-      return profileData.length
-    }
-    return 1
-  }, [profileData])
+    const totalFromBatches = harvestData.reduce(
+      (sum, item) => sum + (Number(item.num_harvesters) || 0),
+      0
+    )
+    if (totalFromBatches > 0) return totalFromBatches
+    if (profileData && profileData.length > 0) return profileData.length
+    return harvestData.length > 0 ? harvestData.length : 0
+  }, [harvestData, profileData])
 
   const columns = [
     {
@@ -63,13 +66,13 @@ export function Harvests() {
       cell: (row) => <span className="font-medium text-white">{formatDate(row.date)}</span>,
     },
     {
-      header: 'Plot / Block Area',
-      accessorKey: 'block_name',
+      header: 'Harvesters',
+      accessorKey: 'num_harvesters',
       sortable: true,
       cell: (row) => (
         <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          {row.block_name || 'General Plot'}
+          {row.num_harvesters ? `${row.num_harvesters} workers` : '—'}
         </span>
       ),
     },

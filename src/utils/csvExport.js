@@ -74,7 +74,7 @@ export function exportExpensesCSV(data) {
 export function exportHarvestsCSV(data) {
   const columns = [
     { label: 'Date', accessor: (r) => formatDate(r.date) },
-    { label: 'Block/Area', accessor: (r) => r.block_name },
+    { label: 'Harvesters', accessor: (r) => r.num_harvesters || '-' },
     { label: 'Kg Harvested', accessor: (r) => r.kg_harvested },
     { label: 'Notes', accessor: (r) => r.notes },
   ]

@@ -12,6 +12,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
     date: initialData?.date || todayISO(),
     block_name: initialData?.block_name || '',
     kg_harvested: initialData?.kg_harvested || '',
+    num_harvesters: initialData?.num_harvesters || '',
     notes: initialData?.notes || '',
   })
 
@@ -24,6 +25,8 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
 
     setLoading(true)
     try {
+      const numHarvestersVal = formData.num_harvesters ? parseInt(formData.num_harvesters, 10) : null
+
       const payload = {
         user_id: user.id,
         date: formData.date,
@@ -32,13 +35,25 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
         notes: formData.notes.trim(),
       }
 
+      if (numHarvestersVal !== null && !isNaN(numHarvestersVal)) {
+        payload.num_harvesters = numHarvestersVal
+      }
+
       if (initialData?.id) {
-        const { error } = await supabase.from('harvests').update(payload).eq('id', initialData.id)
-        if (error) throw error
+        let updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
+        if (updateRes.error && updateRes.error.message?.includes('column') && updateRes.error.message?.includes('does not exist')) {
+          delete payload.num_harvesters
+          updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
+        }
+        if (updateRes.error) throw updateRes.error
         toast.success('Harvest entry updated!')
       } else {
-        const { error } = await supabase.from('harvests').insert([payload])
-        if (error) throw error
+        let insertRes = await supabase.from('harvests').insert([payload])
+        if (insertRes.error && insertRes.error.message?.includes('column') && insertRes.error.message?.includes('does not exist')) {
+          delete payload.num_harvesters
+          insertRes = await supabase.from('harvests').insert([payload])
+        }
+        if (insertRes.error) throw insertRes.error
         toast.success('Harvest batch logged!')
       }
 
@@ -65,6 +80,19 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
         </div>
 
         <div>
+          <label className="field-label">Number of Harvesters</label>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            placeholder="e.g. 5"
+            value={formData.num_harvesters}
+            onChange={(e) => setFormData({ ...formData, num_harvesters: e.target.value })}
+            className="field-input"
+          />
+        </div>
+
+        <div className="sm:col-span-2">
           <label className="field-label">Kg Harvested (Yield) *</label>
           <input
             type="number"

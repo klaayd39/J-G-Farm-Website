@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS harvests (
   date DATE NOT NULL,
   block_name TEXT NOT NULL DEFAULT '',
   kg_harvested NUMERIC(10,2) NOT NULL CHECK (kg_harvested > 0),
+  num_harvesters INTEGER DEFAULT 0,
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
