@@ -248,6 +248,7 @@ export function Expenses() {
       >
         <ExpenseForm
           initialData={editingItem}
+          defaultCategory={selectedCategory}
           onSuccess={() => {
             setModalOpen(false)
             refetch()

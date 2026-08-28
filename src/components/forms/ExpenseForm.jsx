@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO, CATEGORY_LABELS } from '../../utils/formatters'
@@ -6,18 +6,24 @@ import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
 
-export function ExpenseForm({ initialData = null, onSuccess, onCancel }) {
+export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer', onSuccess, onCancel }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [receiptUrl, setReceiptUrl] = useState(initialData?.receipt_url || '')
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
-    category: initialData?.category || 'fertilizer',
+    category: initialData?.category || (defaultCategory && defaultCategory !== 'all' ? defaultCategory : 'fertilizer'),
     description: initialData?.description || '',
     amount: initialData?.amount || '',
     notes: initialData?.notes || '',
   })
+
+  useEffect(() => {
+    if (!initialData && defaultCategory && defaultCategory !== 'all') {
+      setFormData((prev) => ({ ...prev, category: defaultCategory }))
+    }
+  }, [defaultCategory, initialData])
 
   async function handleFileUpload(e) {
     const file = e.target.files?.[0]
