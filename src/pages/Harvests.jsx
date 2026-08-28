@@ -25,8 +25,6 @@ export function Harvests() {
     ascending: false,
   })
 
-  const { data: profileData } = useSupabaseQuery('profiles')
-
   async function handleDelete() {
     if (!deleteId) return
     setDeleting(true)
@@ -49,14 +47,11 @@ export function Harvests() {
   )
 
   const totalHarvestersCount = useMemo(() => {
-    const totalFromBatches = harvestData.reduce(
+    return harvestData.reduce(
       (sum, item) => sum + (Number(item.num_harvesters) || 0),
       0
     )
-    if (totalFromBatches > 0) return totalFromBatches
-    if (profileData && profileData.length > 0) return profileData.length
-    return harvestData.length > 0 ? harvestData.length : 0
-  }, [harvestData, profileData])
+  }, [harvestData])
 
   const columns = [
     {
