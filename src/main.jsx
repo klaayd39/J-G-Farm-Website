@@ -4,19 +4,23 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      for (const registration of registrations) {
-        await registration.update()
-      }
-      await navigator.serviceWorker.register('/sw.js')
-    } catch {
-      // Service worker is optional
+async function setupServiceWorker() {
+  if (!('serviceWorker' in navigator)) return
+
+  if (import.meta.env.DEV) {
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(registrations.map((registration) => registration.unregister()))
+    if (window.caches) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((key) => caches.delete(key)))
     }
-  })
+    return
+  }
+
+  await navigator.serviceWorker.register('/sw.js')
 }
+
+setupServiceWorker().catch(() => {})
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
