@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Pencil, Trash2, TrendingUp, DollarSign, Scale } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, TrendingUp, PhilippinePeso, Scale } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -200,7 +200,7 @@ export function Income() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card title="Volume sold" value={formatWeight(totalKgSold)} subtitle={`${incomeData.length} sales`} icon={Scale} color="blue" />
         <Card title="Avg. price / kg" value={formatCurrency(avgPrice)} subtitle="Weighted average" icon={TrendingUp} color="emerald" />
-        <Card title="Gross revenue" value={formatCurrency(totalRevenue)} subtitle="Bags + loose kg" icon={DollarSign} color="emerald" />
+        <Card title="Gross revenue" value={formatCurrency(totalRevenue)} subtitle="Bags + loose kg" icon={PhilippinePeso} color="emerald" />
       </div>
 
       {loading ? (

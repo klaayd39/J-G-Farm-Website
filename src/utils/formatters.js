@@ -2,12 +2,13 @@
  * Format a number as Philippine Peso currency
  */
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
+  const value = Number(amount) || 0
+  const formatted = new Intl.NumberFormat('en-PH', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount || 0)
+  }).format(Math.abs(value))
+  const sign = value < 0 ? '−' : ''
+  return `${sign}₱${formatted}`
 }
 
 /**
@@ -49,12 +50,10 @@ export const CATEGORY_LABELS = {
   fertilizer: 'Fertilizer',
   pesticides: 'Pesticides',
   labor: 'Labor',
-  irrigation: 'Irrigation',
   tools_equipment: 'Tools & Equipment',
   transport: 'Transport',
   gas: 'Gas',
   meal: 'Meal',
-  land_rent: 'Land Rent',
   other: 'Other',
 }
 
@@ -65,12 +64,10 @@ export const CATEGORY_COLORS = {
   fertilizer: '#10b981',
   pesticides: '#f59e0b',
   labor: '#6366f1',
-  irrigation: '#06b6d4',
   tools_equipment: '#8b5cf6',
   transport: '#ec4899',
   gas: '#eab308',
   meal: '#14b8a6',
-  land_rent: '#f97316',
   other: '#6b7280',
 }
 

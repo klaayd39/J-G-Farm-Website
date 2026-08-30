@@ -285,7 +285,7 @@ export function IncomeForm({
               />
             </div>
             <div>
-              <label className="field-label">Price / bag</label>
+              <label className="field-label">Price / bag (₱)</label>
               <input
                 type="number"
                 step="0.01"
@@ -327,7 +327,7 @@ export function IncomeForm({
               )}
             </div>
             <div>
-              <label className="field-label">Price / kg</label>
+              <label className="field-label">Price / kg (₱)</label>
               <input
                 type="number"
                 step="0.01"

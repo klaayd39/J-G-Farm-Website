@@ -201,7 +201,7 @@ export function Dashboard() {
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-white">{isIncome ? tx.buyer : tx.description}</p>
                             <p className="truncate text-xs text-slate-400">
-                              {formatDate(tx.date)} · {isIncome ? `${tx.kg_sold} kg @ ₱${tx.price_per_kg}/kg` : CATEGORY_LABELS[tx.category] || tx.category}
+                              {formatDate(tx.date)} · {isIncome ? `${tx.kg_sold} kg @ ${formatCurrency(tx.price_per_kg)}/kg` : CATEGORY_LABELS[tx.category] || tx.category}
                             </p>
                           </div>
                         </div>

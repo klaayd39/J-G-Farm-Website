@@ -9,12 +9,10 @@ DO $$ BEGIN
     'fertilizer',
     'pesticides',
     'labor',
-    'irrigation',
     'tools_equipment',
     'transport',
     'gas',
     'meal',
-    'land_rent',
     'other'
   );
 EXCEPTION

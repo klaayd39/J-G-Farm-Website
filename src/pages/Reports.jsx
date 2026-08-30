@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, ListChecks, FileText } from 'lucide-react'
+import { Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, PhilippinePeso, ListChecks, FileText } from 'lucide-react'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { IncomeExpenseChart } from '../components/charts/IncomeExpenseChart'
 import { ExpenseBreakdown } from '../components/charts/ExpenseBreakdown'
@@ -208,7 +208,7 @@ export function Reports() {
             <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Net Position</span>
-                <DollarSign size={18} className={netProfit >= 0 ? 'text-emerald-400/80' : 'text-amber-400/80'} />
+                <PhilippinePeso size={18} className={netProfit >= 0 ? 'text-emerald-400/80' : 'text-amber-400/80'} />
               </div>
               <p className={`mt-2 font-display text-2xl font-semibold ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
                 {formatCurrency(netProfit)}
