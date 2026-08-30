@@ -413,6 +413,7 @@ export function IncomeForm({
             {harvests.map((h) => {
               const batchInventory = getHarvestInventory(h, linkedSales, initialData?.id)
               const hasRemaining = batchInventory.availableKg > 0.001
+              if (!hasRemaining && !isEditing) return null
               return (
                 <option key={h.id} value={h.id}>
                   {h.date} — {formatHarvestRedBags(h)} ({formatWeight(getHarvestKg(h))})
@@ -431,7 +432,11 @@ export function IncomeForm({
         </FormSection>
       )}
 
-      {!isEditing && (
+      {!isEditing && harvests.length > 0 && harvests.every((h) => getHarvestInventory(h, linkedSales, initialData?.id).availableKg <= 0.001) && (
+        <ComputedHint>No harvest batches with stock left. Log a new harvest first.</ComputedHint>
+      )}
+
+      {!isEditing && harvests.some((h) => getHarvestInventory(h, linkedSales, initialData?.id).availableKg > 0.001) && (
         <ComputedHint>
           Enter whole bags and loose kilos together — one Save sale records both parts.
         </ComputedHint>

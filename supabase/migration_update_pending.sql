@@ -1,0 +1,125 @@
+-- ============================================================
+-- J&G Farm — Apply all pending schema updates (Aug 2026)
+-- Run once in: Supabase Dashboard → SQL Editor → New query → Run
+-- Safe to re-run (uses IF NOT EXISTS / conditional checks)
+-- ============================================================
+
+-- 1. Harvest: store red bags + loose kilos (1 bag + 15 kg = 1.56 bags)
+ALTER TABLE harvests ADD COLUMN IF NOT EXISTS num_red_bags NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE harvests ADD COLUMN IF NOT EXISTS loose_kg NUMERIC(10,2) DEFAULT 0;
+
+UPDATE harvests
+SET
+  num_red_bags = FLOOR(kg_harvested / 27),
+  loose_kg = ROUND(kg_harvested - FLOOR(kg_harvested / 27) * 27, 2)
+WHERE kg_harvested > 0
+  AND (
+    (COALESCE(num_red_bags, 0) = 0 AND COALESCE(loose_kg, 0) = 0)
+    OR ABS((COALESCE(num_red_bags, 0) * 27 + COALESCE(loose_kg, 0)) - kg_harvested) > 0.01
+  );
+
+-- 2. Income: combined bag + loose sale total (₱500 + ₱450 = ₱950)
+ALTER TABLE income ADD COLUMN IF NOT EXISTS num_red_bags NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE income ADD COLUMN IF NOT EXISTS price_per_red_bag NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE income ADD COLUMN IF NOT EXISTS loose_kg_sold NUMERIC(10,2) DEFAULT 0;
+
+ALTER TABLE income DROP COLUMN IF EXISTS total_amount;
+
+ALTER TABLE income ADD COLUMN total_amount NUMERIC(12,2) GENERATED ALWAYS AS (
+  CASE
+    WHEN COALESCE(num_red_bags, 0) > 0 AND COALESCE(price_per_red_bag, 0) > 0
+         AND COALESCE(loose_kg_sold, 0) > 0 AND COALESCE(price_per_kg, 0) > 0
+      THEN (num_red_bags * price_per_red_bag) + (loose_kg_sold * price_per_kg)
+    WHEN COALESCE(num_red_bags, 0) > 0 AND COALESCE(price_per_red_bag, 0) > 0
+      THEN (num_red_bags * price_per_red_bag)
+    ELSE (kg_sold * price_per_kg)
+  END
+) STORED;
+
+-- 3. Remove deprecated expense categories (irrigation, land_rent)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_enum e
+    JOIN pg_type t ON e.enumtypid = t.oid
+    WHERE t.typname = 'expense_category'
+      AND e.enumlabel IN ('irrigation', 'land_rent')
+  ) THEN
+    UPDATE expenses
+    SET category = 'other'
+    WHERE category::text IN ('irrigation', 'land_rent');
+
+    ALTER TYPE expense_category RENAME TO expense_category_old;
+
+    CREATE TYPE expense_category AS ENUM (
+      'fertilizer',
+      'pesticides',
+      'labor',
+      'tools_equipment',
+      'transport',
+      'gas',
+      'meal',
+      'other'
+    );
+
+    ALTER TABLE expenses
+      ALTER COLUMN category TYPE expense_category
+      USING category::text::expense_category;
+
+    DROP TYPE expense_category_old;
+  END IF;
+END $$;
+
+-- 4. Indexes for inventory lookups
+CREATE INDEX IF NOT EXISTS idx_income_harvest_id ON income(harvest_id);
+CREATE INDEX IF NOT EXISTS idx_income_user_date ON income(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_harvests_user_date ON harvests(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(user_id, category);
+
+-- 5. Block overselling a harvest batch (server-side safety net)
+CREATE OR REPLACE FUNCTION public.check_harvest_sale_inventory()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  harvest_kg NUMERIC;
+  sold_kg NUMERIC;
+BEGIN
+  IF NEW.harvest_id IS NULL OR COALESCE(NEW.kg_sold, 0) <= 0 THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT COALESCE(h.kg_harvested, 0)
+  INTO harvest_kg
+  FROM harvests h
+  WHERE h.id = NEW.harvest_id;
+
+  IF harvest_kg IS NULL THEN
+    RAISE EXCEPTION 'Harvest batch not found';
+  END IF;
+
+  SELECT COALESCE(SUM(i.kg_sold), 0)
+  INTO sold_kg
+  FROM income i
+  WHERE i.harvest_id = NEW.harvest_id
+    AND i.id IS DISTINCT FROM NEW.id;
+
+  IF sold_kg + NEW.kg_sold > harvest_kg + 0.001 THEN
+    RAISE EXCEPTION 'This sale exceeds remaining harvest inventory (%.1f kg available)', GREATEST(harvest_kg - sold_kg, 0);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS check_harvest_sale_inventory ON income;
+CREATE TRIGGER check_harvest_sale_inventory
+  BEFORE INSERT OR UPDATE OF harvest_id, kg_sold ON income
+  FOR EACH ROW
+  EXECUTE FUNCTION public.check_harvest_sale_inventory();
+
+-- Done. Refresh Supabase schema cache: Settings → API → Reload schema (if available)
+-- or wait ~1 minute for PostgREST to pick up column changes.

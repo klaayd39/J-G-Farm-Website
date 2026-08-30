@@ -1,4 +1,4 @@
-import { formatDate, formatCurrency, formatWeight, CATEGORY_LABELS } from './formatters'
+import { formatDate, CATEGORY_LABELS } from './formatters'
 import { formatIncomeExportDetails } from './farmAnalytics'
 
 /**

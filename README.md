@@ -66,6 +66,11 @@ Run these migrations in order if upgrading an older database:
 | 5 | `migration_remove_staff_users.sql` |
 | 6 | `migration_drop_block_name.sql` |
 | 7 | `migration_rls_owner_scoped_writes.sql` |
+| 8 | `migration_remove_irrigation_land_rent.sql` |
+| 9 | `migration_harvest_bag_parts.sql` |
+| 10 | `migration_income_combined_sale.sql` |
+
+**Quick upgrade (steps 8–10 in one file):** run `migration_update_pending.sql` instead.
 
 Skip any migration whose changes are already applied.
 
@@ -93,10 +98,12 @@ In **Providers → Email**:
 | Concept | Rule |
 |---------|------|
 | Red bag | 1 bag = **27 kg** |
-| Bag sale | `bags × price/bag` → stored with derived kg and price/kg |
-| Kilo sale | Remaining loose kg × price/kg — separate transaction |
-| Gross revenue | Sum of all sale `total_amount` values (no double-counting) |
-| Inventory | Per batch: harvested kg − sold kg; overselling is blocked in the form |
+| Harvest entry | Whole bags + loose kg saved together (e.g. 1 bag + 15 kg = 42 kg = **1.56 red bags**) |
+| Combined sale | One save can record bags + loose kg; total = `(bags × price/bag) + (loose kg × price/kg)` |
+| Bag-only sale | `bags × price/bag` |
+| Kilo-only sale | `loose kg × price/kg` |
+| Gross revenue | Sum of all sale `total_amount` values |
+| Inventory | Per batch: harvested kg − sold kg; overselling blocked in app and database |
 
 ## Vercel deployment
 
@@ -151,3 +158,7 @@ public/         PWA manifest and service worker
 | `migration_remove_staff_users.sql` | Remove staff accounts; owner-only role |
 | `migration_drop_block_name.sql` | Drop unused `block_name` column |
 | `migration_rls_owner_scoped_writes.sql` | Restrict writes/deletes to record owner |
+| `migration_remove_irrigation_land_rent.sql` | Remove irrigation and land_rent categories |
+| `migration_harvest_bag_parts.sql` | `num_red_bags` and `loose_kg` on harvests |
+| `migration_income_combined_sale.sql` | `loose_kg_sold` and fixed combined `total_amount` |
+| `migration_update_pending.sql` | **All pending updates in one script** (recommended for existing DBs) |

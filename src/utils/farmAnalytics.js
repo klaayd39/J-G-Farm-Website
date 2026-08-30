@@ -1,6 +1,6 @@
 import { subYears, format } from 'date-fns'
-import { formatMonthYear, formatCurrency, formatWeight, CATEGORY_LABELS } from './formatters'
-import { getHarvestInventory, formatBags, getHarvestKg, kgToBags, isCombinedIncomeSale } from './farmUnits'
+import { formatMonthYear, formatCurrency, formatWeight } from './formatters'
+import { getHarvestInventory, getHarvestKg, kgToBags, isCombinedIncomeSale } from './farmUnits'
 
 export function buildMonthlyChartData(incomeData, expenseData) {
   const map = {}

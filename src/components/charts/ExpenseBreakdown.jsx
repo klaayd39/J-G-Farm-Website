@@ -1,6 +1,20 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts'
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../utils/formatters'
 
+function ExpenseBreakdownTooltip({ active, payload }) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload
+    return (
+      <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.name}</p>
+        <p className="mt-1 text-base font-bold text-white">{formatCurrency(item.value)}</p>
+        <p className="text-xs font-medium text-emerald-400">{item.percentage}% of total expenses</p>
+      </div>
+    )
+  }
+  return null
+}
+
 export function ExpenseBreakdown({ data = [] }) {
   if (!data || data.length === 0) {
     return (
@@ -18,20 +32,6 @@ export function ExpenseBreakdown({ data = [] }) {
     categoryKey: item.category,
     percentage: totalExpense > 0 ? ((Number(item.amount) / totalExpense) * 100).toFixed(1) : 0,
   }))
-
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload
-      return (
-        <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.name}</p>
-          <p className="mt-1 text-base font-bold text-white">{formatCurrency(item.value)}</p>
-          <p className="text-xs font-medium text-emerald-400">{item.percentage}% of total expenses</p>
-        </div>
-      )
-    }
-    return null
-  }
 
   return (
     <div className="h-72 w-full">
@@ -55,7 +55,7 @@ export function ExpenseBreakdown({ data = [] }) {
               />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={ExpenseBreakdownTooltip} />
           <Legend
             verticalAlign="bottom"
             wrapperStyle={{ paddingTop: '12px', fontSize: '11px' }}

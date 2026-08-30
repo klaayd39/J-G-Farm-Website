@@ -36,6 +36,12 @@ export function Income() {
     filters,
   })
 
+  const { data: allIncome, refetch: refetchAllIncome } = useSupabaseQuery(
+    'income',
+    { orderBy: 'date', ascending: false },
+    ['inventory-linked']
+  )
+
   const { data: harvestData } = useSupabaseQuery('harvests', {
     orderBy: 'date',
     ascending: false,
@@ -57,6 +63,7 @@ export function Income() {
       toast.success('Sale record removed')
       setDeleteId(null)
       refetch()
+      refetchAllIncome()
     } catch (err) {
       toast.error(err.message || 'Could not delete this sale.')
     } finally {
@@ -73,8 +80,6 @@ export function Income() {
     () => incomeData.reduce((sum, item) => sum + Number(item.total_amount || 0), 0),
     [incomeData]
   )
-
-  const avgPrice = totalKgSold > 0 ? totalRevenue / totalKgSold : 0
 
   const columns = [
     {
@@ -213,9 +218,8 @@ export function Income() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card title="Volume sold" value={formatWeight(totalKgSold)} subtitle={`${incomeData.length} sales`} icon={Scale} color="blue" />
-        <Card title="Avg. price / kg" value={formatCurrency(avgPrice)} subtitle="Weighted average" icon={TrendingUp} color="emerald" />
         <Card title="Gross revenue" value={formatCurrency(totalRevenue)} subtitle="Bags + loose kg" icon={PhilippinePeso} color="emerald" />
       </div>
 
@@ -236,8 +240,12 @@ export function Income() {
         <IncomeForm
           initialData={editingItem}
           harvests={harvestData}
-          linkedSales={incomeData}
-          onSuccess={() => { setModalOpen(false); refetch() }}
+          linkedSales={allIncome}
+          onSuccess={() => {
+            setModalOpen(false)
+            refetch()
+            refetchAllIncome()
+          }}
           onCancel={() => setModalOpen(false)}
         />
       </Modal>

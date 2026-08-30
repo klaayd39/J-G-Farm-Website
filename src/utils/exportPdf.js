@@ -1,4 +1,4 @@
-import { formatCurrency, formatDate, formatWeight, CATEGORY_LABELS } from './formatters'
+import { formatCurrency, formatDate, CATEGORY_LABELS } from './formatters'
 import { formatIncomeExportDetails } from './farmAnalytics'
 
 function escapeHtml(value) {

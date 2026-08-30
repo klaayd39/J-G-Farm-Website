@@ -1,5 +1,5 @@
 import { formatCurrency, formatDate, formatWeight } from '../../utils/formatters'
-import { formatBags, formatRedBagTotal } from '../../utils/farmUnits'
+import { formatRedBagTotal } from '../../utils/farmUnits'
 import { Panel } from '../ui/Panel'
 
 function Delta({ current, previous }) {
@@ -115,7 +115,7 @@ export function FarmInsights({
       {lowStock.length > 0 && (
         <Panel className="xl:col-span-2" title="Low stock alerts" description="Batches with 5 bags or less remaining">
           <div className="flex flex-wrap gap-2">
-            {lowStock.map(({ harvest, remainingBags, remainingKg }) => (
+            {lowStock.map(({ harvest, remainingKg }) => (
               <div
                 key={harvest.id}
                 className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"

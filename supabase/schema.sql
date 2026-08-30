@@ -190,6 +190,7 @@ CREATE POLICY "Users can delete own expenses"
   ON expenses FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- 6. Indexes
+CREATE INDEX IF NOT EXISTS idx_income_harvest_id ON income(harvest_id);
 CREATE INDEX IF NOT EXISTS idx_income_user_date ON income(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_harvests_user_date ON harvests(user_id, date DESC);
@@ -226,6 +227,49 @@ CREATE POLICY "Users can delete own receipts"
     bucket_id = 'receipts'
     AND auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- 8. Prevent overselling harvest batches
+CREATE OR REPLACE FUNCTION public.check_harvest_sale_inventory()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+DECLARE
+  harvest_kg NUMERIC;
+  sold_kg NUMERIC;
+BEGIN
+  IF NEW.harvest_id IS NULL OR COALESCE(NEW.kg_sold, 0) <= 0 THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT COALESCE(h.kg_harvested, 0)
+  INTO harvest_kg
+  FROM harvests h
+  WHERE h.id = NEW.harvest_id;
+
+  IF harvest_kg IS NULL THEN
+    RAISE EXCEPTION 'Harvest batch not found';
+  END IF;
+
+  SELECT COALESCE(SUM(i.kg_sold), 0)
+  INTO sold_kg
+  FROM income i
+  WHERE i.harvest_id = NEW.harvest_id
+    AND i.id IS DISTINCT FROM NEW.id;
+
+  IF sold_kg + NEW.kg_sold > harvest_kg + 0.001 THEN
+    RAISE EXCEPTION 'This sale exceeds remaining harvest inventory (%.1f kg available)', GREATEST(harvest_kg - sold_kg, 0);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS check_harvest_sale_inventory ON income;
+CREATE TRIGGER check_harvest_sale_inventory
+  BEFORE INSERT OR UPDATE OF harvest_id, kg_sold ON income
+  FOR EACH ROW
+  EXECUTE FUNCTION public.check_harvest_sale_inventory();
 
 -- Promote farm owner (only needed if upgrading from staff role):
 -- UPDATE profiles SET role = 'owner' WHERE email = 'your-email@farm.ph';

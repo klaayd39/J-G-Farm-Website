@@ -9,6 +9,7 @@ import { Expenses } from './pages/Expenses'
 import { Harvests } from './pages/Harvests'
 import { Reports } from './pages/Reports'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -80,7 +81,9 @@ export function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <AppLayout />
+              <ErrorBoundary>
+                <AppLayout />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
         >

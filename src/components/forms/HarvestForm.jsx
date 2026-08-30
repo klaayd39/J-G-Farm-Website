@@ -16,7 +16,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
 
-  const initialParts = getHarvestParts(initialData)
+  const initialParts = getHarvestParts(initialData ?? {})
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
     num_red_bags: initialParts.wholeBags > 0 ? String(initialParts.wholeBags) : '',

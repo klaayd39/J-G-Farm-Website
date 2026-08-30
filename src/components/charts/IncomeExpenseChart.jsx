@@ -10,6 +10,43 @@ import {
 } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
+function IncomeExpenseTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    const income = payload.find((p) => p.dataKey === 'income')?.value || 0
+    const expense = payload.find((p) => p.dataKey === 'expense')?.value || 0
+    const profit = income - expense
+
+    return (
+      <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+        <div className="space-y-1.5 text-xs">
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Income
+            </span>
+            <span className="font-semibold text-slate-100">{formatCurrency(income)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-rose-400">
+              <span className="h-2 w-2 rounded-full bg-rose-400" />
+              Expense
+            </span>
+            <span className="font-semibold text-slate-100">{formatCurrency(expense)}</span>
+          </div>
+          <div className="border-t border-white/8 pt-1.5 flex items-center justify-between gap-4 font-semibold">
+            <span className="text-slate-400">Net Result</span>
+            <span className={profit >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
+              {formatCurrency(profit)}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
 export function IncomeExpenseChart({ data = [] }) {
   if (!data || data.length === 0) {
     return (
@@ -17,43 +54,6 @@ export function IncomeExpenseChart({ data = [] }) {
         No transaction history available for the selected period.
       </div>
     )
-  }
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const income = payload.find((p) => p.dataKey === 'income')?.value || 0
-      const expense = payload.find((p) => p.dataKey === 'expense')?.value || 0
-      const profit = income - expense
-
-      return (
-        <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-1.5 text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Income
-              </span>
-              <span className="font-semibold text-slate-100">{formatCurrency(income)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-1.5 text-rose-400">
-                <span className="h-2 w-2 rounded-full bg-rose-400" />
-                Expense
-              </span>
-              <span className="font-semibold text-slate-100">{formatCurrency(expense)}</span>
-            </div>
-            <div className="border-t border-white/8 pt-1.5 flex items-center justify-between gap-4 font-semibold">
-              <span className="text-slate-400">Net Result</span>
-              <span className={profit >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
-                {formatCurrency(profit)}
-              </span>
-            </div>
-          </div>
-        </div>
-      )
-    }
-    return null
   }
 
   return (
@@ -79,7 +79,7 @@ export function IncomeExpenseChart({ data = [] }) {
             axisLine={false}
             tickFormatter={(val) => `₱${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={IncomeExpenseTooltip} />
           <Legend
             wrapperStyle={{ paddingTop: '12px', fontSize: '12px' }}
             formatter={(value) => <span className="text-slate-300 capitalize font-medium">{value}</span>}
