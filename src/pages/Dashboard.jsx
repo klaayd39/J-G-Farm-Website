@@ -25,7 +25,7 @@ import {
 } from '../utils/farmAnalytics'
 import {
   TrendingUp,
-  Receipt,
+  PhilippinePeso,
   PiggyBank,
   Trees,
   ArrowUpRight,
@@ -152,7 +152,7 @@ export function Dashboard() {
         <>
           <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <Card title="Harvest Picked" value={formatWeight(totalHarvestKg)} subtitle={`${harvestData.length} picking batches`} icon={Trees} color="blue" />
-            <Card title="Field Expenses" value={formatCurrency(totalExpense)} subtitle={`${expenseData.length} recorded items`} icon={Receipt} color="red" />
+            <Card title="Field Expenses" value={formatCurrency(totalExpense)} subtitle={`${expenseData.length} recorded items`} icon={PhilippinePeso} color="red" />
             <Card title="Gross Revenue" value={formatCurrency(totalIncome)} subtitle={`${incomeData.length} buyer sales`} icon={TrendingUp} color="emerald" />
             <Card
               title="Net Profit"

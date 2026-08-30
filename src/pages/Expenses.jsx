@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Pencil, Trash2, Receipt, Filter } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, PhilippinePeso, Filter } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -231,7 +231,7 @@ export function Expenses() {
         <LoadingSpinner text="Loading expense entries…" />
       ) : rawExpenseData.length === 0 ? (
         <EmptyState
-          icon={Receipt}
+          icon={PhilippinePeso}
           title="No expenses logged yet"
           description="Log fertilizer, pesticide, or labor costs so profit and cost metrics stay accurate."
           action={
