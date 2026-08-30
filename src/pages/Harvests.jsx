@@ -6,11 +6,13 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
+import { Card } from '../components/ui/Card'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { HarvestForm } from '../components/forms/HarvestForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { supabase } from '../lib/supabase'
 import { formatWeight, formatDate } from '../utils/formatters'
+import { kgToBags, formatBags } from '../utils/farmUnits'
 import { exportHarvestsCSV } from '../utils/csvExport'
 import toast from 'react-hot-toast'
 
@@ -46,6 +48,8 @@ export function Harvests() {
     [harvestData]
   )
 
+  const totalHarvestBags = useMemo(() => kgToBags(totalHarvestKg), [totalHarvestKg])
+
   const columns = [
     {
       header: 'Date',
@@ -69,9 +73,12 @@ export function Harvests() {
       accessorKey: 'kg_harvested',
       sortable: true,
       cell: (row) => (
-        <span className="font-display font-semibold text-white tracking-tight">
-          {formatWeight(row.kg_harvested)}
-        </span>
+        <div>
+          <span className="font-display font-semibold tracking-tight text-white">
+            {formatBags(kgToBags(row.kg_harvested))}
+          </span>
+          <span className="block text-xs text-slate-400">{formatWeight(row.kg_harvested)}</span>
+        </div>
       ),
     },
     {
@@ -112,7 +119,7 @@ export function Harvests() {
       <PageHeader
         eyebrow="Orchard Yield"
         title="Harvest Batches"
-        description="Monitor calamansi yield, picking records, and harvester team output."
+        description="Log picking batches in red bags — 27 kg each."
         actions={
           <>
             {harvestData.length > 0 && (
@@ -134,16 +141,13 @@ export function Harvests() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Yield Picked</span>
-            <Trees size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatWeight(totalHarvestKg)}</p>
-          <p className="mt-1 text-xs text-slate-400">Total volume recorded across all harvest batches</p>
-        </div>
-      </div>
+      <Card
+        title="Total harvested"
+        value={formatBags(totalHarvestBags)}
+        subtitle={`${formatWeight(totalHarvestKg)} · ${harvestData.length} batches`}
+        icon={Trees}
+        color="emerald"
+      />
 
       {loading ? (
         <LoadingSpinner text="Loading harvest records…" />
@@ -175,7 +179,8 @@ export function Harvests() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingItem ? 'Edit Harvest Entry' : 'Record Harvest Batch'}
+        title={editingItem ? 'Edit harvest' : 'New harvest'}
+        maxWidth="max-w-md"
       >
         <HarvestForm
           initialData={editingItem}

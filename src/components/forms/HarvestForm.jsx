@@ -1,9 +1,15 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO } from '../../utils/formatters'
+import { todayISO, formatWeight } from '../../utils/formatters'
+import { RED_BAG_KG, bagsToKg, kgToBags, formatBags } from '../../utils/farmUnits'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
+import {
+  FormSection,
+  ComputedHint,
+  FormActions,
+} from '../ui/FormPrimitives'
 
 export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -11,15 +17,26 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
     block_name: initialData?.block_name || '',
-    kg_harvested: initialData?.kg_harvested || '',
+    num_red_bags:
+      initialData?.kg_harvested != null && initialData.kg_harvested !== ''
+        ? kgToBags(initialData.kg_harvested)
+        : '',
     num_harvesters: initialData?.num_harvesters || '',
     notes: initialData?.notes || '',
   })
+
+  const kgHarvested = bagsToKg(formData.num_red_bags)
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!user) {
       toast.error('You must be logged in.')
+      return
+    }
+
+    const numRedBagsVal = formData.num_red_bags ? parseFloat(formData.num_red_bags) : null
+    if (!numRedBagsVal || numRedBagsVal <= 0) {
+      toast.error('Enter the number of red bags harvested.')
       return
     }
 
@@ -31,7 +48,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
         user_id: user.id,
         date: formData.date,
         block_name: formData.block_name.trim(),
-        kg_harvested: parseFloat(formData.kg_harvested),
+        kg_harvested: bagsToKg(numRedBagsVal),
         notes: formData.notes.trim(),
       }
 
@@ -41,20 +58,28 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
 
       if (initialData?.id) {
         let updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
-        if (updateRes.error && updateRes.error.message?.includes('column') && updateRes.error.message?.includes('does not exist')) {
+        if (
+          updateRes.error &&
+          updateRes.error.message?.includes('column') &&
+          updateRes.error.message?.includes('does not exist')
+        ) {
           delete payload.num_harvesters
           updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
         }
         if (updateRes.error) throw updateRes.error
-        toast.success('Harvest entry updated!')
+        toast.success('Harvest updated')
       } else {
         let insertRes = await supabase.from('harvests').insert([payload])
-        if (insertRes.error && insertRes.error.message?.includes('column') && insertRes.error.message?.includes('does not exist')) {
+        if (
+          insertRes.error &&
+          insertRes.error.message?.includes('column') &&
+          insertRes.error.message?.includes('does not exist')
+        ) {
           delete payload.num_harvesters
           insertRes = await supabase.from('harvests').insert([payload])
         }
         if (insertRes.error) throw insertRes.error
-        toast.success('Harvest batch logged!')
+        toast.success('Harvest recorded')
       }
 
       onSuccess?.()
@@ -66,68 +91,88 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className="field-label">Date *</label>
-          <input
-            type="date"
-            required
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="field-input"
-          />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <FormSection>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="field-label">Date</label>
+            <input
+              type="date"
+              required
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className="field-input"
+            />
+          </div>
+          <div>
+            <label className="field-label">Harvesters</label>
+            <input
+              type="number"
+              step="1"
+              min="1"
+              placeholder="Optional"
+              value={formData.num_harvesters}
+              onChange={(e) => setFormData({ ...formData, num_harvesters: e.target.value })}
+              className="field-input"
+            />
+          </div>
         </div>
+      </FormSection>
 
-        <div>
-          <label className="field-label">Number of Harvesters</label>
-          <input
-            type="number"
-            step="1"
-            min="1"
-            placeholder="e.g. 5"
-            value={formData.num_harvesters}
-            onChange={(e) => setFormData({ ...formData, num_harvesters: e.target.value })}
-            className="field-input"
-          />
+      <FormSection title="Yield" description={`1 red bag = ${RED_BAG_KG} kg`}>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="field-label">Red bags</label>
+            <input
+              type="number"
+              step="1"
+              min="1"
+              required
+              placeholder="0"
+              value={formData.num_red_bags}
+              onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
+              className="field-input"
+            />
+          </div>
+          <div>
+            <label className="field-label">Block / plot</label>
+            <input
+              type="text"
+              placeholder="Optional"
+              value={formData.block_name}
+              onChange={(e) => setFormData({ ...formData, block_name: e.target.value })}
+              className="field-input"
+            />
+          </div>
         </div>
+        {kgHarvested > 0 && (
+          <ComputedHint>
+            {formatBags(formData.num_red_bags)} · {formatWeight(kgHarvested)}
+          </ComputedHint>
+        )}
+      </FormSection>
 
-        <div className="sm:col-span-2">
-          <label className="field-label">Kg Harvested (Yield) *</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0.01"
-            required
-            placeholder="e.g. 245.50"
-            value={formData.kg_harvested}
-            onChange={(e) => setFormData({ ...formData, kg_harvested: e.target.value })}
-            className="field-input"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="field-label">Notes & Field Conditions</label>
+      <FormSection>
+        <label className="field-label">Notes</label>
         <textarea
           rows={2}
-          placeholder="Fruit grade, weather condition, harvesters involved..."
+          placeholder="Optional"
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="field-input min-h-[80px]"
+          className="field-input min-h-[72px] resize-none"
         />
-      </div>
+      </FormSection>
 
-      <div className="mt-6 flex items-center justify-end gap-2.5 pt-2">
+      <FormActions>
         {onCancel && (
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
         )}
         <Button type="submit" disabled={loading}>
-          {loading ? 'Saving harvest…' : initialData ? 'Update Harvest' : 'Save Harvest Batch'}
+          {loading ? 'Saving…' : initialData ? 'Update' : 'Save harvest'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

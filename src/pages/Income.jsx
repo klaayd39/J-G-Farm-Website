@@ -6,11 +6,13 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
+import { Card } from '../components/ui/Card'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { IncomeForm } from '../components/forms/IncomeForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { supabase } from '../lib/supabase'
 import { formatCurrency, formatWeight, formatDate } from '../utils/formatters'
+import { kgToBags, formatBags } from '../utils/farmUnits'
 import { exportIncomeCSV } from '../utils/csvExport'
 import toast from 'react-hot-toast'
 
@@ -81,17 +83,35 @@ export function Income() {
       accessorKey: 'kg_sold',
       sortable: true,
       cell: (row) => {
-        if (row.num_red_bags) {
-          return (
+        const isBag = Number(row.num_red_bags) > 0
+        return (
+          <div className="flex items-start gap-2">
+            <span
+              className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                isBag
+                  ? 'bg-white/[0.06] text-slate-400'
+                  : 'bg-emerald-500/10 text-emerald-400/90'
+              }`}
+            >
+              {isBag ? 'Bag' : 'Kg'}
+            </span>
             <div>
-              <span className="font-medium text-slate-200">{row.num_red_bags} red bags</span>
-              {Number(row.kg_sold) > 0 && (
-                <span className="block text-xs text-slate-400">({formatWeight(row.kg_sold)})</span>
+              {isBag ? (
+                <>
+                  <span className="font-medium text-slate-200">{row.num_red_bags} bags</span>
+                  <span className="block text-xs text-slate-500">{formatWeight(row.kg_sold)}</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
+                  <span className="block text-xs text-slate-500">
+                    Sold by kilo · ≈ {formatBags(kgToBags(row.kg_sold))}
+                  </span>
+                </>
               )}
             </div>
-          )
-        }
-        return <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
+          </div>
+        )
       },
     },
     {
@@ -99,17 +119,23 @@ export function Income() {
       accessorKey: 'price_per_kg',
       sortable: true,
       cell: (row) => {
-        if (row.price_per_red_bag) {
+        if (Number(row.price_per_red_bag) > 0) {
           return (
             <div>
-              <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_red_bag)} / bag</span>
-              {Number(row.price_per_kg) > 0 && (
-                <span className="block text-xs text-slate-400">({formatCurrency(row.price_per_kg)}/kg)</span>
-              )}
+              <span className="font-medium tabular-nums text-slate-300">
+                {formatCurrency(row.price_per_red_bag)}/bag
+              </span>
+              <span className="block text-xs tabular-nums text-slate-500">
+                {formatCurrency(row.price_per_kg)}/kg
+              </span>
             </div>
           )
         }
-        return <span className="text-slate-300 font-medium">{formatCurrency(row.price_per_kg)} / kg</span>
+        return (
+          <span className="font-medium tabular-nums text-slate-300">
+            {formatCurrency(row.price_per_kg)}/kg
+          </span>
+        )
       },
     },
     {
@@ -117,7 +143,9 @@ export function Income() {
       accessorKey: 'total_amount',
       sortable: true,
       cell: (row) => (
-        <span className="font-semibold text-emerald-300">{formatCurrency(row.total_amount)}</span>
+        <span className="font-medium tabular-nums text-emerald-300">
+          {formatCurrency(row.total_amount)}
+        </span>
       ),
     },
     {
@@ -153,7 +181,7 @@ export function Income() {
       <PageHeader
         eyebrow="Commercial Sales"
         title="Income Ledger"
-        description="Track calamansi dispatches, volume in kg, price per kilo, and total buyer revenue."
+        description="Bag sales and remaining-bag kilo sales are recorded separately; gross revenue combines both."
         actions={
           <>
             {incomeData.length > 0 && (
@@ -175,33 +203,28 @@ export function Income() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Volume Sold</span>
-            <Scale size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-white">{formatWeight(totalKgSold)}</p>
-          <p className="mt-1 text-xs text-slate-400">{incomeData.length} recorded sales</p>
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Avg. Price Per Kg</span>
-            <TrendingUp size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(avgPrice)} / kg</p>
-          <p className="mt-1 text-xs text-slate-400">Weighted average price</p>
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em]">Gross Revenue</span>
-            <DollarSign size={18} className="text-emerald-400/80" />
-          </div>
-          <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(totalRevenue)}</p>
-          <p className="mt-1 text-xs text-slate-400">All-time sales value</p>
-        </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card
+          title="Volume sold"
+          value={formatWeight(totalKgSold)}
+          subtitle={`${incomeData.length} sales`}
+          icon={Scale}
+          color="blue"
+        />
+        <Card
+          title="Avg. price / kg"
+          value={formatCurrency(avgPrice)}
+          subtitle="Weighted average"
+          icon={TrendingUp}
+          color="emerald"
+        />
+        <Card
+          title="Gross revenue"
+          value={formatCurrency(totalRevenue)}
+          subtitle="Bags + loose kg"
+          icon={DollarSign}
+          color="emerald"
+        />
       </div>
 
       {loading ? (
@@ -234,7 +257,8 @@ export function Income() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingItem ? 'Edit Sale Record' : 'Record New Sale'}
+        title={editingItem ? 'Edit sale' : 'New sale'}
+        maxWidth="max-w-md"
       >
         <IncomeForm
           initialData={editingItem}
