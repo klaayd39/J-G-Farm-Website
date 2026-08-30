@@ -34,3 +34,11 @@ export async function getReceiptSignedUrl(pathOrUrl, expiresIn = 3600) {
   if (error) throw error
   return data.signedUrl
 }
+
+export async function deleteReceipt(pathOrUrl) {
+  const path = normalizeReceiptPath(pathOrUrl)
+  if (!path || path.startsWith('http')) return
+
+  const { error } = await supabase.storage.from(RECEIPTS_BUCKET).remove([path])
+  if (error) throw error
+}

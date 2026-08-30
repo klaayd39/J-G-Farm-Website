@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, ListChecks } from 'lucide-react'
+import { Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, ListChecks, FileText } from 'lucide-react'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { IncomeExpenseChart } from '../components/charts/IncomeExpenseChart'
 import { ExpenseBreakdown } from '../components/charts/ExpenseBreakdown'
@@ -8,31 +8,42 @@ import { DataTable } from '../components/ui/DataTable'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Panel } from '../components/ui/Panel'
 import { Button } from '../components/ui/Button'
+import { QueryError } from '../components/ui/QueryError'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { useDateRange } from '../hooks/useDateRange'
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import {
   formatCurrency,
   formatWeight,
   formatDate,
   CATEGORY_LABELS,
 } from '../utils/formatters'
+import {
+  buildMonthlyChartData,
+  buildCategoryChartData,
+  formatSaleSubtitle,
+} from '../utils/farmAnalytics'
 import { exportReportCSV } from '../utils/csvExport'
+import { exportReportPDF } from '../utils/exportPdf'
 
 export function Reports() {
   const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, filters, PRESETS } =
     useDateRange('thisYear')
 
-  const { data: incomeData, loading: incomeLoading } = useSupabaseQuery('income', {
+  const { data: incomeData, loading: incomeLoading, error: incomeError, refetch: refetchIncome } = useSupabaseQuery('income', {
     orderBy: 'date',
     ascending: false,
     filters,
   })
 
-  const { data: expenseData, loading: expenseLoading } = useSupabaseQuery('expenses', {
+  const { data: expenseData, loading: expenseLoading, error: expenseError, refetch: refetchExpenses } = useSupabaseQuery('expenses', {
     orderBy: 'date',
     ascending: false,
     filters,
   })
+
+  const queryError = incomeError || expenseError
+  useQueryErrorToast(queryError)
 
   const loading = incomeLoading || expenseLoading
 
@@ -53,31 +64,15 @@ export function Reports() {
     [incomeData]
   )
 
-  const monthlyChartData = useMemo(() => {
-    const map = {}
-    incomeData.forEach((inc) => {
-      const month = inc.date ? inc.date.substring(0, 7) : 'Unknown'
-      if (!map[month]) map[month] = { period: month, income: 0, expense: 0 }
-      map[month].income += Number(inc.total_amount || 0)
-    })
+  const monthlyChartData = useMemo(
+    () => buildMonthlyChartData(incomeData, expenseData),
+    [incomeData, expenseData]
+  )
 
-    expenseData.forEach((exp) => {
-      const month = exp.date ? exp.date.substring(0, 7) : 'Unknown'
-      if (!map[month]) map[month] = { period: month, income: 0, expense: 0 }
-      map[month].expense += Number(exp.amount || 0)
-    })
-
-    return Object.values(map).sort((a, b) => a.period.localeCompare(b.period))
-  }, [incomeData, expenseData])
-
-  const categoryChartData = useMemo(() => {
-    const map = {}
-    expenseData.forEach((exp) => {
-      const cat = exp.category || 'other'
-      map[cat] = (map[cat] || 0) + Number(exp.amount || 0)
-    })
-    return Object.entries(map).map(([category, amount]) => ({ category, amount }))
-  }, [expenseData])
+  const categoryChartData = useMemo(
+    () => buildCategoryChartData(expenseData),
+    [expenseData]
+  )
 
   const combinedTransactions = useMemo(() => {
     const inc = incomeData.map((i) => ({
@@ -85,7 +80,7 @@ export function Reports() {
       type: 'Income',
       date: i.date,
       title: i.buyer,
-      subtitle: `${i.kg_sold} kg @ ₱${i.price_per_kg}/kg`,
+      subtitle: formatSaleSubtitle(i),
       category: 'Fruit Sale',
       amount: Number(i.total_amount),
       isPositive: true,
@@ -112,13 +107,7 @@ export function Reports() {
       accessorKey: 'type',
       sortable: true,
       cell: (row) => (
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-            row.isPositive
-              ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-400/20'
-              : 'bg-rose-500/10 text-rose-300 ring-rose-400/20'
-          }`}
-        >
+        <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${row.isPositive ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-400/20' : 'bg-rose-500/10 text-rose-300 ring-rose-400/20'}`}>
           {row.isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
           {row.type}
         </span>
@@ -168,25 +157,28 @@ export function Reports() {
         description="Full profit and loss analysis with downloadable transaction audit records."
         actions={
           <>
-            <DateRangeFilter
-              preset={preset}
-              setPreset={setPreset}
-              customFrom={customFrom}
-              setCustomFrom={setCustomFrom}
-              customTo={customTo}
-              setCustomTo={setCustomTo}
-              presets={PRESETS}
-            />
-            <Button
-              onClick={() => exportReportCSV(incomeData, expenseData)}
-              disabled={combinedTransactions.length === 0}
-            >
+            <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />
+            <Button variant="secondary" onClick={() => exportReportCSV(incomeData, expenseData)} disabled={combinedTransactions.length === 0}>
               <Download size={15} />
-              Export Statement CSV
+              Export CSV
+            </Button>
+            <Button onClick={() => exportReportPDF({ incomeData, expenseData })} disabled={combinedTransactions.length === 0}>
+              <FileText size={15} />
+              Export PDF
             </Button>
           </>
         }
       />
+
+      {queryError && (
+        <QueryError
+          message={queryError}
+          onRetry={() => {
+            refetchIncome()
+            refetchExpenses()
+          }}
+        />
+      )}
 
       {loading ? (
         <LoadingSpinner text="Compiling financial statement…" />
@@ -250,12 +242,7 @@ export function Reports() {
                 <p className="text-xs text-slate-400">Unified chronology of farm sales and operational expenses</p>
               </div>
             </div>
-            <DataTable
-              columns={columns}
-              data={combinedTransactions}
-              searchKeys={['title', 'category', 'subtitle', 'date']}
-              searchPlaceholder="Search the ledger…"
-            />
+            <DataTable columns={columns} data={combinedTransactions} searchKeys={['title', 'category', 'subtitle', 'date']} searchPlaceholder="Search the ledger…" />
           </div>
         </>
       )}

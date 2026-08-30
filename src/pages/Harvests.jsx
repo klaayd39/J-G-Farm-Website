@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Pencil, Trash2, Trees, Users } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, Trees } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -8,8 +8,12 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { QueryError } from '../components/ui/QueryError'
+import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { HarvestForm } from '../components/forms/HarvestForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
+import { useDateRange } from '../hooks/useDateRange'
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { supabase } from '../lib/supabase'
 import { formatWeight, formatDate } from '../utils/formatters'
 import { kgToBags, formatBags } from '../utils/farmUnits'
@@ -22,17 +26,23 @@ export function Harvests() {
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
-  const { data: harvestData, loading, refetch } = useSupabaseQuery('harvests', {
+  const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, filters, PRESETS } =
+    useDateRange('thisYear')
+
+  const { data: harvestData, loading, error, refetch } = useSupabaseQuery('harvests', {
     orderBy: 'date',
     ascending: false,
+    filters,
   })
+
+  useQueryErrorToast(error)
 
   async function handleDelete() {
     if (!deleteId) return
     setDeleting(true)
     try {
-      const { error } = await supabase.from('harvests').delete().eq('id', deleteId)
-      if (error) throw error
+      const { error: deleteError } = await supabase.from('harvests').delete().eq('id', deleteId)
+      if (deleteError) throw deleteError
       toast.success('Harvest entry deleted')
       setDeleteId(null)
       refetch()
@@ -74,9 +84,7 @@ export function Harvests() {
       sortable: true,
       cell: (row) => (
         <div>
-          <span className="font-display font-semibold tracking-tight text-white">
-            {formatBags(kgToBags(row.kg_harvested))}
-          </span>
+          <span className="font-display font-semibold tracking-tight text-white">{formatBags(kgToBags(row.kg_harvested))}</span>
           <span className="block text-xs text-slate-400">{formatWeight(row.kg_harvested)}</span>
         </div>
       ),
@@ -90,23 +98,10 @@ export function Harvests() {
       header: '',
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              setEditingItem(row)
-              setModalOpen(true)
-            }}
-            className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
-            title="Edit batch"
-          >
+          <button type="button" onClick={() => { setEditingItem(row); setModalOpen(true) }} className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white" title="Edit batch">
             <Pencil size={15} />
           </button>
-          <button
-            type="button"
-            onClick={() => setDeleteId(row.id)}
-            className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
-            title="Delete batch"
-          >
+          <button type="button" onClick={() => setDeleteId(row.id)} className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300" title="Delete batch">
             <Trash2 size={15} />
           </button>
         </div>
@@ -122,18 +117,14 @@ export function Harvests() {
         description="Log picking batches in red bags — 27 kg each."
         actions={
           <>
+            <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />
             {harvestData.length > 0 && (
               <Button variant="secondary" onClick={() => exportHarvestsCSV(harvestData)}>
                 <Download size={15} />
                 Export CSV
               </Button>
             )}
-            <Button
-              onClick={() => {
-                setEditingItem(null)
-                setModalOpen(true)
-              }}
-            >
+            <Button onClick={() => { setEditingItem(null); setModalOpen(true) }}>
               <Plus size={16} />
               Record Harvest
             </Button>
@@ -141,13 +132,9 @@ export function Harvests() {
         }
       />
 
-      <Card
-        title="Total harvested"
-        value={formatBags(totalHarvestBags)}
-        subtitle={`${formatWeight(totalHarvestKg)} · ${harvestData.length} batches`}
-        icon={Trees}
-        color="emerald"
-      />
+      {error && <QueryError message={error} onRetry={refetch} />}
+
+      <Card title="Total harvested" value={formatBags(totalHarvestBags)} subtitle={`${formatWeight(totalHarvestKg)} · ${harvestData.length} batches`} icon={Trees} color="emerald" />
 
       {loading ? (
         <LoadingSpinner text="Loading harvest records…" />
@@ -156,51 +143,17 @@ export function Harvests() {
           icon={Trees}
           title="No harvests logged yet"
           description="Log picking batches, volume yield, and harvester headcount to track harvest records."
-          action={
-            <Button
-              onClick={() => {
-                setEditingItem(null)
-                setModalOpen(true)
-              }}
-            >
-              Record First Harvest
-            </Button>
-          }
+          action={<Button onClick={() => { setEditingItem(null); setModalOpen(true) }}>Record First Harvest</Button>}
         />
       ) : (
-        <DataTable
-          columns={columns}
-          data={harvestData}
-          searchKeys={['block_name', 'notes', 'date']}
-          searchPlaceholder="Search block or notes…"
-        />
+        <DataTable columns={columns} data={harvestData} searchKeys={['notes', 'date']} searchPlaceholder="Search notes or date…" />
       )}
 
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editingItem ? 'Edit harvest' : 'New harvest'}
-        maxWidth="max-w-md"
-      >
-        <HarvestForm
-          initialData={editingItem}
-          onSuccess={() => {
-            setModalOpen(false)
-            refetch()
-          }}
-          onCancel={() => setModalOpen(false)}
-        />
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingItem ? 'Edit harvest' : 'New harvest'} maxWidth="max-w-md">
+        <HarvestForm initialData={editingItem} onSuccess={() => { setModalOpen(false); refetch() }} onCancel={() => setModalOpen(false)} />
       </Modal>
 
-      <ConfirmDialog
-        open={Boolean(deleteId)}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-        loading={deleting}
-        title="Delete this harvest entry?"
-        description="This cannot be undone. Associated sales records will remain intact without this batch link."
-        confirmLabel="Delete Harvest"
-      />
+      <ConfirmDialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting} title="Delete this harvest entry?" description="This cannot be undone. Associated sales records will remain intact without this batch link." confirmLabel="Delete Harvest" />
     </div>
   )
 }

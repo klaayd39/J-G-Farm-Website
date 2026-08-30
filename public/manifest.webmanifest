@@ -1,0 +1,17 @@
+{
+  "name": "J&G Farm Tracker",
+  "short_name": "J&G Farm",
+  "description": "Calamansi farm harvest, sales, and expense tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070d0b",
+  "theme_color": "#08110e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

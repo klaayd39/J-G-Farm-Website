@@ -39,15 +39,6 @@ export function calcKgSale(kgSold, pricePerKg) {
   }
 }
 
-export function calcKgSaleFromRemainingBags(remainingBags, pricePerKg) {
-  const kgSold = bagsToKg(remainingBags)
-  const sale = calcKgSale(kgSold, pricePerKg)
-  return {
-    remainingBags: Number(remainingBags || 0),
-    ...sale,
-  }
-}
-
 export function getHarvestSoldKg(linkedSales, harvestId, excludeSaleId = null) {
   if (!harvestId) return 0
   return linkedSales
@@ -64,4 +55,20 @@ export function getHarvestInventory(harvest, linkedSales, excludeSaleId = null, 
   const remainingBags = kgToBags(remainingKg)
 
   return { harvestKg, harvestBags, soldKg, soldBags, remainingKg, remainingBags }
+}
+
+export function validateSaleInventory({ harvestId, harvests = [], inventory, requireBatch = false }) {
+  if (requireBatch && harvests.length > 0 && !harvestId) {
+    return { ok: false, message: 'Select a harvest batch for this sale.' }
+  }
+
+  if (harvestId && inventory && inventory.remainingKg < -0.001) {
+    const availableKg = Math.max(inventory.harvestKg - inventory.soldKg, 0)
+    return {
+      ok: false,
+      message: `This sale exceeds remaining inventory (${availableKg.toFixed(1)} kg available).`,
+    }
+  }
+
+  return { ok: true }
 }

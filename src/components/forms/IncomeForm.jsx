@@ -9,6 +9,7 @@ import {
   formatBags,
   getHarvestInventory,
   kgToBags,
+  validateSaleInventory,
 } from '../../utils/farmUnits'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
@@ -96,6 +97,18 @@ export function IncomeForm({
 
     setLoading(true)
     try {
+      const validation = validateSaleInventory({
+        harvestId: formData.harvest_id,
+        harvests,
+        inventory,
+        requireBatch: harvests.length > 0,
+      })
+      if (!validation.ok) {
+        toast.error(validation.message)
+        setLoading(false)
+        return
+      }
+
       const shared = {
         user_id: user.id,
         date: formData.date,
@@ -204,9 +217,7 @@ export function IncomeForm({
               )
               return (
                 <option key={h.id} value={h.id}>
-                  {h.date}
-                  {h.block_name ? ` · ${h.block_name}` : ''} — {formatBags(harvestBags)} (
-                  {h.kg_harvested} kg)
+                  {h.date} — {formatBags(harvestBags)} ({h.kg_harvested} kg)
                   {remainingBags < harvestBags ? ` · ${formatBags(remainingBags)} left` : ''}
                 </option>
               )

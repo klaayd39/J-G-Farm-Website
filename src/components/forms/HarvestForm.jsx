@@ -46,7 +46,6 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       const payload = {
         user_id: user.id,
         date: formData.date,
-        block_name: '',
         kg_harvested: bagsToKg(numRedBagsVal),
         notes: formData.notes.trim(),
       }

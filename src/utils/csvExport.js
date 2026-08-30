@@ -1,4 +1,5 @@
 import { formatDate, formatCurrency, formatWeight, CATEGORY_LABELS } from './formatters'
+import { formatIncomeExportDetails } from './farmAnalytics'
 
 /**
  * Convert an array of objects to a CSV string
@@ -91,7 +92,7 @@ export function exportReportCSV(income, expenses) {
     description: r.buyer || 'Sale',
     category: '-',
     amount: r.total_amount,
-    details: `${r.kg_sold} kg × ₱${r.price_per_kg}/kg`,
+    details: formatIncomeExportDetails(r),
   }))
   const expenseRows = expenses.map((r) => ({
     type: 'Expense',

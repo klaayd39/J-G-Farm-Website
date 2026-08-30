@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO, CATEGORY_LABELS } from '../../utils/formatters'
-import { getReceiptSignedUrl, normalizeReceiptPath } from '../../utils/receiptStorage'
+import { getReceiptSignedUrl, normalizeReceiptPath, deleteReceipt } from '../../utils/receiptStorage'
 import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
@@ -66,6 +66,14 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
 
       if (error) throw error
 
+      if (receiptUrl && receiptUrl !== data.path) {
+        try {
+          await deleteReceipt(receiptUrl)
+        } catch {
+          // Keep going if old receipt cleanup fails.
+        }
+      }
+
       setReceiptUrl(data.path)
       toast.success('Receipt photo attached!')
     } catch (err) {
@@ -82,6 +90,12 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
       return
     }
 
+    const amount = parseFloat(formData.amount)
+    if (!amount || Number.isNaN(amount) || amount <= 0) {
+      toast.error('Enter a valid expense amount.')
+      return
+    }
+
     setLoading(true)
     try {
       const payload = {
@@ -89,7 +103,7 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
         date: formData.date,
         category: formData.category,
         description: formData.description.trim(),
-        amount: parseFloat(formData.amount),
+        amount,
         receipt_url: receiptUrl,
         notes: formData.notes.trim(),
       }
@@ -188,7 +202,18 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
                 </a>
                 <button
                   type="button"
-                  onClick={() => setReceiptUrl('')}
+                  onClick={async () => {
+                    if (receiptUrl) {
+                      try {
+                        await deleteReceipt(receiptUrl)
+                      } catch {
+                        toast.error('Could not remove receipt file from storage.')
+                        return
+                      }
+                    }
+                    setReceiptUrl('')
+                    setReceiptPreviewUrl('')
+                  }}
                   className="flex h-[46px] w-9 items-center justify-center rounded-xl border border-white/10 text-slate-500 hover:text-rose-400"
                   title="Remove receipt"
                 >

@@ -1,7 +1,7 @@
 -- Migration: Security hardening & shared farm data
 -- Run in Supabase Dashboard → SQL Editor → New query → Run
 
--- 1. Always create new users as staff (ignore client-supplied role metadata)
+-- 1. Always create new users as owner
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -14,7 +14,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    'staff'
+    'owner'
   );
   RETURN NEW;
 END;

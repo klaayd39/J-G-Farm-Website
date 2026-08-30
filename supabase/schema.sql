@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   full_name TEXT DEFAULT '',
-  role TEXT NOT NULL DEFAULT 'staff' CHECK (role IN ('owner', 'staff')),
+  role TEXT NOT NULL DEFAULT 'owner' CHECK (role IN ('owner')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -54,7 +54,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    'staff'
+    'owner'
   );
   RETURN NEW;
 END;
@@ -93,7 +93,6 @@ CREATE TABLE IF NOT EXISTS harvests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
-  block_name TEXT NOT NULL DEFAULT '',
   kg_harvested NUMERIC(10,2) NOT NULL CHECK (kg_harvested > 0),
   num_harvesters INTEGER DEFAULT 0,
   notes TEXT DEFAULT '',
@@ -109,11 +108,13 @@ DROP POLICY IF EXISTS "Farm team can insert harvests" ON harvests;
 CREATE POLICY "Farm team can insert harvests"
   ON harvests FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Farm team can update all harvests" ON harvests;
-CREATE POLICY "Farm team can update all harvests"
-  ON harvests FOR UPDATE TO authenticated USING (true);
 DROP POLICY IF EXISTS "Farm team can delete all harvests" ON harvests;
-CREATE POLICY "Farm team can delete all harvests"
-  ON harvests FOR DELETE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users can update own harvests" ON harvests;
+CREATE POLICY "Users can update own harvests"
+  ON harvests FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own harvests" ON harvests;
+CREATE POLICY "Users can delete own harvests"
+  ON harvests FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- 4. Income
 CREATE TABLE IF NOT EXISTS income (
@@ -145,11 +146,13 @@ DROP POLICY IF EXISTS "Farm team can insert income" ON income;
 CREATE POLICY "Farm team can insert income"
   ON income FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Farm team can update all income" ON income;
-CREATE POLICY "Farm team can update all income"
-  ON income FOR UPDATE TO authenticated USING (true);
 DROP POLICY IF EXISTS "Farm team can delete all income" ON income;
-CREATE POLICY "Farm team can delete all income"
-  ON income FOR DELETE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users can update own income" ON income;
+CREATE POLICY "Users can update own income"
+  ON income FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own income" ON income;
+CREATE POLICY "Users can delete own income"
+  ON income FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- 5. Expenses
 CREATE TABLE IF NOT EXISTS expenses (
@@ -173,11 +176,13 @@ DROP POLICY IF EXISTS "Farm team can insert expenses" ON expenses;
 CREATE POLICY "Farm team can insert expenses"
   ON expenses FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Farm team can update all expenses" ON expenses;
-CREATE POLICY "Farm team can update all expenses"
-  ON expenses FOR UPDATE TO authenticated USING (true);
 DROP POLICY IF EXISTS "Farm team can delete all expenses" ON expenses;
-CREATE POLICY "Farm team can delete all expenses"
-  ON expenses FOR DELETE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users can update own expenses" ON expenses;
+CREATE POLICY "Users can update own expenses"
+  ON expenses FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own expenses" ON expenses;
+CREATE POLICY "Users can delete own expenses"
+  ON expenses FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_income_user_date ON income(user_id, date DESC);
@@ -217,5 +222,5 @@ CREATE POLICY "Users can delete own receipts"
     AND auth.uid()::text = (storage.foldername(name))[1]
   );
 
--- Promote farm owner (run manually after first signup):
+-- Promote farm owner (only needed if upgrading from staff role):
 -- UPDATE profiles SET role = 'owner' WHERE email = 'your-email@farm.ph';

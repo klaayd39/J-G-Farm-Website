@@ -8,9 +8,14 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { ReceiptLink } from '../components/ui/ReceiptLink'
+import { QueryError } from '../components/ui/QueryError'
+import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { ExpenseForm } from '../components/forms/ExpenseForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
+import { useDateRange } from '../hooks/useDateRange'
+import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { supabase } from '../lib/supabase'
+import { deleteReceipt } from '../utils/receiptStorage'
 import {
   formatCurrency,
   formatDate,
@@ -27,17 +32,32 @@ export function Expenses() {
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
-  const { data: rawExpenseData, loading, refetch } = useSupabaseQuery('expenses', {
+  const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, filters, PRESETS } =
+    useDateRange('thisYear')
+
+  const { data: rawExpenseData, loading, error, refetch } = useSupabaseQuery('expenses', {
     orderBy: 'date',
     ascending: false,
+    filters,
   })
+
+  useQueryErrorToast(error)
 
   async function handleDelete() {
     if (!deleteId) return
     setDeleting(true)
     try {
-      const { error } = await supabase.from('expenses').delete().eq('id', deleteId)
-      if (error) throw error
+      const expense = rawExpenseData.find((item) => item.id === deleteId)
+      if (expense?.receipt_url) {
+        try {
+          await deleteReceipt(expense.receipt_url)
+        } catch {
+          // Continue deleting the expense even if storage cleanup fails.
+        }
+      }
+
+      const { error: deleteError } = await supabase.from('expenses').delete().eq('id', deleteId)
+      if (deleteError) throw deleteError
       toast.success('Expense entry deleted')
       setDeleteId(null)
       refetch()
@@ -143,6 +163,7 @@ export function Expenses() {
         description="Fertilizer purchases, worker wages, orchard irrigation, tools and logistical costs."
         actions={
           <>
+            <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />
             {rawExpenseData.length > 0 && (
               <Button variant="secondary" onClick={() => exportExpensesCSV(expenseData)}>
                 <Download size={15} />
@@ -161,6 +182,8 @@ export function Expenses() {
           </>
         }
       />
+
+      {error && <QueryError message={error} onRetry={refetch} />}
 
       <div className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-3.5 sm:p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 overflow-x-auto pb-1 sm:pb-0 min-w-0">

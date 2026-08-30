@@ -14,10 +14,6 @@ export function FormSection({ title, description, children, className = '' }) {
   )
 }
 
-export function FieldHint({ children }) {
-  return <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{children}</p>
-}
-
 export function ComputedHint({ children }) {
   return (
     <p className="mt-1.5 text-[11px] font-medium tabular-nums text-slate-400">{children}</p>

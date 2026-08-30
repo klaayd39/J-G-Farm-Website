@@ -5,7 +5,7 @@ import { NAV_ITEMS } from '../../nav'
 import { BrandMark } from '../ui/BrandMark'
 
 export function Sidebar({ onClose }) {
-  const { user, profile, isOwner, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const displayName = profile?.full_name || user?.email || 'Account'
   const initial = displayName.trim().charAt(0).toUpperCase()
 
@@ -23,7 +23,7 @@ export function Sidebar({ onClose }) {
       </div>
 
       <nav className="flex-1 space-y-1">
-        {NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner).map((item) => {
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
@@ -60,7 +60,7 @@ export function Sidebar({ onClose }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold text-white">{displayName}</p>
-            <p className="truncate text-[10px] capitalize font-medium text-slate-400">{profile?.role || 'Farm Staff'}</p>
+            <p className="truncate text-[10px] font-medium text-slate-400">{user?.email || 'Farm Account'}</p>
           </div>
         </div>
         <button

@@ -28,24 +28,6 @@ function ProtectedRoute({ children }) {
   return children
 }
 
-function OwnerRoute({ children }) {
-  const { isOwner, loading } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <LoadingSpinner text="Checking role permissions..." />
-      </div>
-    )
-  }
-
-  if (!isOwner) {
-    return <Navigate to="/harvests" replace />
-  }
-
-  return children
-}
-
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
 
@@ -105,22 +87,8 @@ export function App() {
           <Route index element={<Dashboard />} />
           <Route path="harvests" element={<Harvests />} />
           <Route path="expenses" element={<Expenses />} />
-          <Route
-            path="income"
-            element={
-              <OwnerRoute>
-                <Income />
-              </OwnerRoute>
-            }
-          />
-          <Route
-            path="reports"
-            element={
-              <OwnerRoute>
-                <Reports />
-              </OwnerRoute>
-            }
-          />
+          <Route path="income" element={<Income />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
