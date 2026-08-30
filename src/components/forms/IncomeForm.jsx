@@ -1,10 +1,22 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO, formatCurrency } from '../../utils/formatters'
+import { todayISO, formatCurrency, formatWeight } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
-import { PhilippinePeso, ShoppingBag } from 'lucide-react'
+import { PhilippinePeso, Scale } from 'lucide-react'
+
+const RED_BAG_KG = 27
+
+function calcFromRedBags(numRedBags, pricePerRedBag) {
+  const bags = Number(numRedBags || 0)
+  const pricePerBag = Number(pricePerRedBag || 0)
+  return {
+    kgSold: bags > 0 ? bags * RED_BAG_KG : 0,
+    pricePerKg: pricePerBag > 0 ? pricePerBag / RED_BAG_KG : 0,
+    totalIncome: bags * pricePerBag,
+  }
+}
 
 export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -12,18 +24,22 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
     buyer: initialData?.buyer || '',
-    kg_sold: initialData?.kg_sold || '',
-    price_per_kg: initialData?.price_per_kg || '',
     num_red_bags: initialData?.num_red_bags || '',
     price_per_red_bag: initialData?.price_per_red_bag || '',
     harvest_id: initialData?.harvest_id || '',
     notes: initialData?.notes || '',
   })
 
-  // Calculate gross based on kg (kg_sold * price_per_kg) or red bags (num_red_bags * price_per_red_bag)
-  const kgTotal = Number(formData.kg_sold || 0) * Number(formData.price_per_kg || 0)
-  const bagTotal = Number(formData.num_red_bags || 0) * Number(formData.price_per_red_bag || 0)
-  const totalPreview = kgTotal > 0 ? kgTotal : bagTotal
+  const { kgSold, pricePerKg, totalIncome } = calcFromRedBags(
+    formData.num_red_bags,
+    formData.price_per_red_bag
+  )
+
+  const selectedHarvest = harvests.find((h) => h.id === formData.harvest_id)
+  const remainingKg =
+    selectedHarvest && kgSold > 0
+      ? Number(selectedHarvest.kg_harvested || 0) - kgSold
+      : null
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -34,17 +50,26 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
 
     setLoading(true)
     try {
-      const kgSoldVal = formData.kg_sold ? parseFloat(formData.kg_sold) : null
-      const pricePerKgVal = formData.price_per_kg ? parseFloat(formData.price_per_kg) : null
       const numRedBagsVal = formData.num_red_bags ? parseFloat(formData.num_red_bags) : null
       const pricePerRedBagVal = formData.price_per_red_bag ? parseFloat(formData.price_per_red_bag) : null
+
+      if (!numRedBagsVal || numRedBagsVal <= 0) {
+        toast.error('Enter the number of red bags sold.')
+        setLoading(false)
+        return
+      }
+      if (!pricePerRedBagVal || pricePerRedBagVal <= 0) {
+        toast.error('Enter the price per red bag.')
+        setLoading(false)
+        return
+      }
 
       const payload = {
         user_id: user.id,
         date: formData.date,
         buyer: formData.buyer.trim(),
-        kg_sold: kgSoldVal || 0,
-        price_per_kg: pricePerKgVal || 0,
+        kg_sold: kgSold,
+        price_per_kg: pricePerKg,
         harvest_id: formData.harvest_id || null,
         notes: formData.notes.trim(),
       }
@@ -111,26 +136,27 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
         </div>
 
         <div>
-          <label className="field-label">Number of Red Bags</label>
-          <div className="relative">
-            <input
-              type="number"
-              step="1"
-              min="0"
-              placeholder="e.g. 10"
-              value={formData.num_red_bags}
-              onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
-              className="field-input"
-            />
-          </div>
+          <label className="field-label">Number of Red Bags *</label>
+          <input
+            type="number"
+            step="1"
+            min="0"
+            required
+            placeholder="e.g. 10"
+            value={formData.num_red_bags}
+            onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
+            className="field-input"
+          />
+          <p className="mt-1 text-xs text-slate-500">1 red bag = {RED_BAG_KG} kg</p>
         </div>
 
         <div>
-          <label className="field-label">Price Per Red Bag (₱)</label>
+          <label className="field-label">Price Per Red Bag (₱) *</label>
           <input
             type="number"
             step="0.01"
             min="0"
+            required
             placeholder="e.g. 800.00"
             value={formData.price_per_red_bag}
             onChange={(e) => setFormData({ ...formData, price_per_red_bag: e.target.value })}
@@ -141,27 +167,25 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
         <div>
           <label className="field-label">Kg Sold (Volume)</label>
           <input
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="e.g. 150.5"
-            value={formData.kg_sold}
-            onChange={(e) => setFormData({ ...formData, kg_sold: e.target.value })}
-            className="field-input"
+            type="text"
+            readOnly
+            value={kgSold > 0 ? kgSold.toLocaleString('en-PH', { maximumFractionDigits: 2 }) : '—'}
+            className="field-input cursor-not-allowed bg-white/4 text-slate-300"
+            tabIndex={-1}
           />
+          <p className="mt-1 text-xs text-slate-500">Bags × {RED_BAG_KG} kg</p>
         </div>
 
         <div>
           <label className="field-label">Price per Kg (₱)</label>
           <input
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="e.g. 45.00"
-            value={formData.price_per_kg}
-            onChange={(e) => setFormData({ ...formData, price_per_kg: e.target.value })}
-            className="field-input"
+            type="text"
+            readOnly
+            value={pricePerKg > 0 ? pricePerKg.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '—'}
+            className="field-input cursor-not-allowed bg-white/4 text-slate-300"
+            tabIndex={-1}
           />
+          <p className="mt-1 text-xs text-slate-500">Price per bag ÷ {RED_BAG_KG}</p>
         </div>
       </div>
 
@@ -180,6 +204,18 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
               </option>
             ))}
           </select>
+          {remainingKg !== null && (
+            <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2 text-sm text-slate-300">
+              <Scale size={15} className="shrink-0 text-slate-400" />
+              <span>
+                Remaining KG:{' '}
+                <span className={remainingKg < 0 ? 'font-medium text-rose-300' : 'font-medium text-slate-200'}>
+                  {formatWeight(remainingKg)}
+                </span>
+                <span className="text-slate-500"> (harvest − sold)</span>
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -199,10 +235,10 @@ export function IncomeForm({ initialData = null, harvests = [], onSuccess, onCan
           <div className="rounded-lg bg-emerald-500/20 p-1.5 text-emerald-300">
             <PhilippinePeso size={16} />
           </div>
-          <span className="font-medium">Estimated Gross Total</span>
+          <span className="font-medium">Total Income</span>
         </div>
         <span className="font-display text-lg font-semibold text-emerald-300">
-          {formatCurrency(totalPreview)}
+          {formatCurrency(totalIncome)}
         </span>
       </div>
 
