@@ -16,7 +16,6 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
-    block_name: initialData?.block_name || '',
     num_red_bags:
       initialData?.kg_harvested != null && initialData.kg_harvested !== ''
         ? kgToBags(initialData.kg_harvested)
@@ -47,7 +46,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       const payload = {
         user_id: user.id,
         date: formData.date,
-        block_name: formData.block_name.trim(),
+        block_name: '',
         kg_harvested: bagsToKg(numRedBagsVal),
         notes: formData.notes.trim(),
       }
@@ -120,30 +119,18 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       </FormSection>
 
       <FormSection title="Yield" description={`1 red bag = ${RED_BAG_KG} kg`}>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="field-label">Red bags</label>
-            <input
-              type="number"
-              step="1"
-              min="1"
-              required
-              placeholder="0"
-              value={formData.num_red_bags}
-              onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
-              className="field-input"
-            />
-          </div>
-          <div>
-            <label className="field-label">Block / plot</label>
-            <input
-              type="text"
-              placeholder="Optional"
-              value={formData.block_name}
-              onChange={(e) => setFormData({ ...formData, block_name: e.target.value })}
-              className="field-input"
-            />
-          </div>
+        <div>
+          <label className="field-label">Red bags</label>
+          <input
+            type="number"
+            step="1"
+            min="1"
+            required
+            placeholder="0"
+            value={formData.num_red_bags}
+            onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
+            className="field-input"
+          />
         </div>
         {kgHarvested > 0 && (
           <ComputedHint>

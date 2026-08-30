@@ -15,16 +15,11 @@ export function Sidebar({ onClose }) {
         <BrandMark size={38} />
         <div className="min-w-0">
           <p className="font-display text-[1.1rem] font-semibold leading-tight text-white tracking-tight">J&amp;G Farm</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-[11px] font-medium tracking-wide text-emerald-400/90">Calamansi ops</p>
-          </div>
         </div>
       </div>
 
-      <div className="mb-2 flex items-center justify-between px-3">
+      <div className="mb-2 px-3">
         <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Navigation</span>
-        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-400">Live</span>
       </div>
 
       <nav className="flex-1 space-y-1">
