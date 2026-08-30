@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO, formatWeight } from '../../utils/formatters'
-import { RED_BAG_KG, bagsToKg, formatBags, splitHarvestKg, formatRedBagTotal } from '../../utils/farmUnits'
+import { RED_BAG_KG, bagsToKg, formatBags, getHarvestParts, formatRedBagEquivalent, formatHarvestBreakdown, kgFromHarvestParts } from '../../utils/farmUnits'
+import { isMissingColumnError, omitKeys } from '../../utils/supabaseErrors'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
 import {
@@ -15,18 +16,37 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
 
-  const initialSplit = splitHarvestKg(initialData?.kg_harvested)
+  const initialParts = getHarvestParts(initialData)
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
-    num_red_bags: initialSplit.wholeBags > 0 ? String(initialSplit.wholeBags) : '',
-    loose_kg: initialSplit.looseKg > 0 ? String(initialSplit.looseKg) : '',
+    num_red_bags: initialParts.wholeBags > 0 ? String(initialParts.wholeBags) : '',
+    loose_kg: initialParts.looseKg > 0 ? String(initialParts.looseKg) : '',
     num_harvesters: initialData?.num_harvesters || '',
     notes: initialData?.notes || '',
   })
 
   const bagKg = bagsToKg(formData.num_red_bags)
   const looseKg = Number(formData.loose_kg || 0)
-  const totalKg = bagKg + looseKg
+  const wholeBags = Number(formData.num_red_bags || 0)
+  const totalKg = kgFromHarvestParts(wholeBags, looseKg)
+
+  async function saveHarvest(payload) {
+    const optionalKeys = ['num_harvesters', 'num_red_bags', 'loose_kg']
+    let attempt = { ...payload }
+
+    for (let tries = 0; tries <= optionalKeys.length; tries += 1) {
+      const result = initialData?.id
+        ? await supabase.from('harvests').update(attempt).eq('id', initialData.id)
+        : await supabase.from('harvests').insert([attempt])
+
+      if (!result.error) return result
+      if (!isMissingColumnError(result.error)) throw result.error
+
+      attempt = omitKeys(attempt, optionalKeys)
+    }
+
+    throw new Error('Could not save harvest. Run supabase/migration_harvest_bag_parts.sql in Supabase, then try again.')
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -48,7 +68,7 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       return
     }
 
-    const kgHarvested = bagsToKg(numRedBagsVal) + (looseKgVal || 0)
+    const kgHarvested = kgFromHarvestParts(numRedBagsVal, looseKgVal)
     if (kgHarvested <= 0) {
       toast.error('Total harvest must be greater than zero.')
       return
@@ -61,6 +81,8 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       const payload = {
         user_id: user.id,
         date: formData.date,
+        num_red_bags: numRedBagsVal,
+        loose_kg: looseKgVal,
         kg_harvested: kgHarvested,
         notes: formData.notes.trim(),
       }
@@ -70,28 +92,10 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
       }
 
       if (initialData?.id) {
-        let updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
-        if (
-          updateRes.error &&
-          updateRes.error.message?.includes('column') &&
-          updateRes.error.message?.includes('does not exist')
-        ) {
-          delete payload.num_harvesters
-          updateRes = await supabase.from('harvests').update(payload).eq('id', initialData.id)
-        }
-        if (updateRes.error) throw updateRes.error
+        await saveHarvest(payload)
         toast.success('Harvest updated')
       } else {
-        let insertRes = await supabase.from('harvests').insert([payload])
-        if (
-          insertRes.error &&
-          insertRes.error.message?.includes('column') &&
-          insertRes.error.message?.includes('does not exist')
-        ) {
-          delete payload.num_harvesters
-          insertRes = await supabase.from('harvests').insert([payload])
-        }
-        if (insertRes.error) throw insertRes.error
+        await saveHarvest(payload)
         toast.success('Harvest recorded')
       }
 
@@ -168,11 +172,12 @@ export function HarvestForm({ initialData = null, onSuccess, onCancel }) {
           <div className="rounded-lg border border-[#d7ffe0]/10 bg-[#d7ffe0]/5 px-3 py-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#d7ffe0]/70">Total yield</p>
             <p className="mt-0.5 font-display text-lg font-semibold tabular-nums text-[#d7ffe0]">
-              {formatRedBagTotal(totalKg)}
+              {formatRedBagEquivalent(wholeBags, looseKg)}
             </p>
             <p className="mt-0.5 text-[11px] text-[#d7ffe0]/60">
+              {formatHarvestBreakdown({ num_red_bags: wholeBags, loose_kg: looseKg, kg_harvested: totalKg })}
+              {' · '}
               {formatWeight(totalKg)} total
-              {bagKg > 0 && looseKg > 0 && ` · ${formatBags(formData.num_red_bags)} + ${formatWeight(looseKg)} loose`}
             </p>
           </div>
         )}

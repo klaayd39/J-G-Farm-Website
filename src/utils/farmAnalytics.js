@@ -1,6 +1,6 @@
 import { subYears, format } from 'date-fns'
 import { formatMonthYear, formatCurrency, formatWeight, CATEGORY_LABELS } from './formatters'
-import { getHarvestInventory, formatBags, kgToBags } from './farmUnits'
+import { getHarvestInventory, formatBags, getHarvestKg, kgToBags, isCombinedIncomeSale } from './farmUnits'
 
 export function buildMonthlyChartData(incomeData, expenseData) {
   const map = {}
@@ -84,7 +84,7 @@ export function buildLaborMetrics(harvestData, expenseData) {
     .filter((exp) => exp.category === 'labor')
     .reduce((sum, exp) => sum + Number(exp.amount || 0), 0)
 
-  const totalHarvestKg = harvestData.reduce((sum, h) => sum + Number(h.kg_harvested || 0), 0)
+  const totalHarvestKg = harvestData.reduce((sum, h) => sum + getHarvestKg(h), 0)
   const totalHarvesters = harvestData.reduce((sum, h) => sum + Number(h.num_harvesters || 0), 0)
 
   return {
@@ -113,10 +113,10 @@ export function buildSeasonalComparison(incomeData, expenseData, harvestData) {
   const lastExpense = sumForMonth(expenseData, 'amount', lastYearMonthKey)
   const thisHarvest = harvestData
     .filter((row) => row.date?.startsWith(thisMonthKey))
-    .reduce((sum, row) => sum + Number(row.kg_harvested || 0), 0)
+    .reduce((sum, row) => sum + getHarvestKg(row), 0)
   const lastHarvest = harvestData
     .filter((row) => row.date?.startsWith(lastYearMonthKey))
-    .reduce((sum, row) => sum + Number(row.kg_harvested || 0), 0)
+    .reduce((sum, row) => sum + getHarvestKg(row), 0)
 
   return {
     monthLabel: formatMonthYear(`${thisMonthKey}-01`),
@@ -127,6 +127,9 @@ export function buildSeasonalComparison(incomeData, expenseData, harvestData) {
 }
 
 export function formatSaleSubtitle(sale) {
+  if (isCombinedIncomeSale(sale)) {
+    return `${sale.num_red_bags} bags @ ${formatCurrency(sale.price_per_red_bag)}/bag + ${formatWeight(sale.loose_kg_sold)} @ ${formatCurrency(sale.price_per_kg)}/kg`
+  }
   if (Number(sale.num_red_bags) > 0) {
     return `${sale.num_red_bags} bags @ ${formatCurrency(sale.price_per_red_bag)}/bag · ${formatWeight(sale.kg_sold)}`
   }
@@ -134,6 +137,9 @@ export function formatSaleSubtitle(sale) {
 }
 
 export function formatIncomeExportDetails(sale) {
+  if (isCombinedIncomeSale(sale)) {
+    return `${sale.num_red_bags} bags × ${formatCurrency(sale.price_per_red_bag)}/bag + ${sale.loose_kg_sold} kg × ${formatCurrency(sale.price_per_kg)}/kg`
+  }
   if (Number(sale.num_red_bags) > 0) {
     return `${sale.num_red_bags} bags × ${formatCurrency(sale.price_per_red_bag)}/bag`
   }

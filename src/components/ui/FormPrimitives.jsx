@@ -54,8 +54,9 @@ export function SegmentedControl({ value, onChange, options, className = '' }) {
 }
 
 export function InventorySummary({ items }) {
+  const cols = items.length >= 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
   return (
-    <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.06]">
+    <div className={`grid ${cols} gap-px overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.06]`}>
       {items.map((item) => (
         <div key={item.label} className="bg-[#0a0a0a] px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">

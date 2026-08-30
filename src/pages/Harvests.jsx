@@ -17,7 +17,7 @@ import { useDateRange } from '../hooks/useDateRange'
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { supabase } from '../lib/supabase'
 import { formatWeight, formatDate } from '../utils/formatters'
-import { formatRedBagTotal } from '../utils/farmUnits'
+import { formatHarvestRedBags, formatRedBagTotal, getHarvestKg } from '../utils/farmUnits'
 import { exportHarvestsCSV } from '../utils/csvExport'
 import toast from 'react-hot-toast'
 
@@ -55,7 +55,7 @@ export function Harvests() {
   }
 
   const totalHarvestKg = useMemo(
-    () => harvestData.reduce((sum, item) => sum + Number(item.kg_harvested || 0), 0),
+    () => harvestData.reduce((sum, item) => sum + getHarvestKg(item), 0),
     [harvestData]
   )
 
@@ -83,8 +83,8 @@ export function Harvests() {
       sortable: true,
       cell: (row) => (
         <div>
-          <span className="font-display font-semibold tracking-tight text-white">{formatRedBagTotal(row.kg_harvested)}</span>
-          <span className="block text-xs text-slate-400">{formatWeight(row.kg_harvested)}</span>
+          <span className="font-display font-semibold tracking-tight text-white">{formatHarvestRedBags(row)}</span>
+          <span className="block text-xs text-slate-400">{formatWeight(getHarvestKg(row))}</span>
         </div>
       ),
     },

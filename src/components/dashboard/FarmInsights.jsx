@@ -1,5 +1,5 @@
 import { formatCurrency, formatDate, formatWeight } from '../../utils/formatters'
-import { formatBags } from '../../utils/farmUnits'
+import { formatBags, formatRedBagTotal } from '../../utils/farmUnits'
 import { Panel } from '../ui/Panel'
 
 function Delta({ current, previous }) {
@@ -27,17 +27,17 @@ export function FarmInsights({
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Harvested</p>
-            <p className="mt-1 font-display text-lg font-semibold text-white">{formatBags(inventory.totalHarvestBags)}</p>
+            <p className="mt-1 font-display text-lg font-semibold text-white">{formatRedBagTotal(inventory.totalHarvestKg)}</p>
             <p className="text-xs text-slate-400">{formatWeight(inventory.totalHarvestKg)}</p>
           </div>
           <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Sold</p>
-            <p className="mt-1 font-display text-lg font-semibold text-sky-300">{formatBags(inventory.totalSoldBags)}</p>
+            <p className="mt-1 font-display text-lg font-semibold text-sky-300">{formatRedBagTotal(inventory.totalSoldKg)}</p>
             <p className="text-xs text-slate-400">{formatWeight(inventory.totalSoldKg)}</p>
           </div>
           <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Remaining</p>
-            <p className="mt-1 font-display text-lg font-semibold text-emerald-300">{formatBags(inventory.remainingBags)}</p>
+            <p className="mt-1 font-display text-lg font-semibold text-emerald-300">{formatRedBagTotal(inventory.remainingKg)}</p>
             <p className="text-xs text-slate-400">{formatWeight(inventory.remainingKg)}</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export function FarmInsights({
               >
                 <span className="font-semibold text-white">{formatDate(harvest.date)}</span>
                 <span className="mx-1.5 text-amber-300/70">·</span>
-                {formatBags(remainingBags)} left ({formatWeight(remainingKg)})
+                {formatRedBagTotal(remainingKg)} left ({formatWeight(remainingKg)})
               </div>
             ))}
           </div>

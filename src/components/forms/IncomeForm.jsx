@@ -6,29 +6,72 @@ import {
   RED_BAG_KG,
   calcBagSale,
   calcKgSale,
+  calcCombinedSale,
   formatBags,
   formatRedBagTotal,
+  formatHarvestRedBags,
+  getHarvestKg,
   getHarvestInventory,
-  kgToBags,
   validateSaleInventory,
+  getLooseKgAvailable,
+  getLooseKgAvailableAfterPendingBags,
+  isCombinedIncomeSale,
 } from '../../utils/farmUnits'
+import { isMissingColumnError, omitKeys } from '../../utils/supabaseErrors'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
 import {
   FormSection,
   ComputedHint,
-  SegmentedControl,
   InventorySummary,
   FormTotal,
   FormActions,
 } from '../ui/FormPrimitives'
 
-function isKgSale(data) {
-  return data && Number(data.num_red_bags || 0) <= 0 && Number(data.kg_sold || 0) > 0
+function isKgOnlySale(data) {
+  if (!data) return false
+  if (isCombinedIncomeSale(data)) return false
+  return Number(data.num_red_bags || 0) <= 0 && Number(data.kg_sold || 0) > 0
 }
 
-function isBagSale(data) {
-  return data && Number(data.num_red_bags || 0) > 0
+function isBagOnlySale(data) {
+  if (!data) return false
+  if (isCombinedIncomeSale(data)) return false
+  return Number(data.num_red_bags || 0) > 0
+}
+
+function inventoryItems(inventory, pendingKg) {
+  const afterSaleKg = inventory.remainingKg
+  const items = [
+    {
+      label: 'Harvested',
+      value: formatRedBagTotal(inventory.harvestKg),
+      sub: formatWeight(inventory.harvestKg),
+    },
+    {
+      label: 'Already sold',
+      value: formatRedBagTotal(inventory.soldKg),
+      sub: formatWeight(inventory.soldKg),
+    },
+  ]
+
+  if (pendingKg > 0.001) {
+    items.push({
+      label: 'This sale',
+      value: formatRedBagTotal(pendingKg),
+      sub: formatWeight(pendingKg),
+      tone: 'text-sky-300',
+    })
+  }
+
+  items.push({
+    label: 'After this sale',
+    value: formatRedBagTotal(afterSaleKg),
+    sub: formatWeight(afterSaleKg),
+    tone: afterSaleKg < 0 ? 'text-rose-300' : afterSaleKg <= 0.001 ? 'text-emerald-300' : 'text-amber-300',
+  })
+
+  return items
 }
 
 export function IncomeForm({
@@ -40,53 +83,155 @@ export function IncomeForm({
 }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const editingKg = initialData ? isKgSale(initialData) : false
-  const editingBag = initialData ? isBagSale(initialData) : false
-
-  const [saleType, setSaleType] = useState(editingKg ? 'kg' : 'bag')
+  const isEditing = Boolean(initialData?.id)
+  const editingKgOnly = isEditing && isKgOnlySale(initialData)
+  const editingBagOnly = isEditing && isBagOnlySale(initialData)
+  const editingCombined = isEditing && isCombinedIncomeSale(initialData)
 
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
     buyer: initialData?.buyer || '',
-    num_red_bags: editingBag ? initialData.num_red_bags : '',
-    price_per_red_bag: editingBag ? initialData.price_per_red_bag : '',
-    remaining_kg: editingKg && initialData?.kg_sold ? String(initialData.kg_sold) : '',
-    price_per_kg: editingKg ? initialData.price_per_kg : '',
+    num_red_bags: editingBagOnly || editingCombined ? initialData.num_red_bags : '',
+    price_per_red_bag: editingBagOnly || editingCombined ? initialData.price_per_red_bag : '',
+    loose_kg:
+      editingCombined
+        ? String(initialData.loose_kg_sold)
+        : editingKgOnly && initialData?.kg_sold
+          ? String(initialData.kg_sold)
+          : '',
+    price_per_kg: editingKgOnly || editingCombined ? initialData.price_per_kg : '',
     harvest_id: initialData?.harvest_id || '',
     notes: initialData?.notes || '',
   })
 
   const selectedHarvest = harvests.find((h) => h.id === formData.harvest_id)
-  const isBagMode = saleType === 'bag'
 
   const bagSale = calcBagSale(formData.num_red_bags, formData.price_per_red_bag)
-  const kgSale = calcKgSale(formData.remaining_kg, formData.price_per_kg)
-  const equivalentBags = kgToBags(kgSale.kgSold)
-  const saleIncome = isBagMode ? bagSale.income : kgSale.income
-  const pendingKg = isBagMode ? bagSale.kgSold : kgSale.kgSold
+  const kgSale = calcKgSale(formData.loose_kg, formData.price_per_kg)
+  const combinedSale = calcCombinedSale({
+    numRedBags: formData.num_red_bags,
+    pricePerRedBag: formData.price_per_red_bag,
+    looseKg: formData.loose_kg,
+    pricePerKg: formData.price_per_kg,
+  })
+
+  const pendingKg = isEditing
+    ? editingCombined
+      ? combinedSale.totalKgSold
+      : editingBagOnly
+        ? bagSale.kgSold
+        : kgSale.kgSold
+    : combinedSale.totalKgSold
+  const saleIncome = isEditing
+    ? editingCombined
+      ? combinedSale.totalIncome
+      : editingBagOnly
+        ? bagSale.income
+        : kgSale.income
+    : combinedSale.totalIncome
 
   const inventory = selectedHarvest
     ? getHarvestInventory(selectedHarvest, linkedSales, initialData?.id, pendingKg)
     : null
 
-  async function saveRecord(payload) {
-    let result = initialData?.id
-      ? await supabase.from('income').update(payload).eq('id', initialData.id)
-      : await supabase.from('income').insert([payload])
+  const looseKgAvailable = inventory
+    ? getLooseKgAvailableAfterPendingBags(inventory, bagSale.kgSold)
+    : 0
 
-    if (
-      result.error &&
-      result.error.message?.includes('column') &&
-      result.error.message?.includes('does not exist')
-    ) {
-      delete payload.num_red_bags
-      delete payload.price_per_red_bag
-      result = initialData?.id
-        ? await supabase.from('income').update(payload).eq('id', initialData.id)
-        : await supabase.from('income').insert([payload])
+  function handleHarvestChange(harvestId) {
+    const harvest = harvests.find((h) => h.id === harvestId)
+    if (!harvest) {
+      setFormData((prev) => ({ ...prev, harvest_id: harvestId }))
+      return
     }
 
-    if (result.error) throw result.error
+    const inv = getHarvestInventory(harvest, linkedSales, initialData?.id)
+    const loose = getLooseKgAvailable(inv)
+    const wholeBags = inv.maxWholeBags
+
+    setFormData((prev) => ({
+      ...prev,
+      harvest_id: harvestId,
+      num_red_bags: !isEditing && wholeBags > 0 ? String(wholeBags) : '',
+      loose_kg: !isEditing && loose > 0 ? String(loose) : '',
+    }))
+  }
+
+  async function saveRecord(payload) {
+    const optionalKeys = ['num_red_bags', 'price_per_red_bag', 'loose_kg_sold']
+    let attempt = { ...payload }
+
+    for (let tries = 0; tries <= optionalKeys.length; tries += 1) {
+      const result = initialData?.id
+        ? await supabase.from('income').update(attempt).eq('id', initialData.id)
+        : await supabase.from('income').insert([attempt])
+
+      if (!result.error) return
+      if (!isMissingColumnError(result.error)) throw result.error
+
+      attempt = omitKeys(attempt, optionalKeys)
+    }
+
+    throw new Error('Could not save sale.')
+  }
+
+  async function saveSplitCombinedSale(shared, bagSale, kgSale, formData) {
+    await saveRecord({
+      ...shared,
+      num_red_bags: bagSale.bags,
+      price_per_red_bag: parseFloat(formData.price_per_red_bag),
+      kg_sold: bagSale.kgSold,
+      price_per_kg: bagSale.pricePerKg,
+    })
+    await saveRecord({
+      ...shared,
+      num_red_bags: 0,
+      price_per_red_bag: 0,
+      kg_sold: kgSale.kgSold,
+      price_per_kg: parseFloat(formData.price_per_kg),
+    })
+  }
+
+  async function saveNewSale(shared, combinedSale, bagSale, kgSale, formData) {
+    if (combinedSale.isCombined) {
+      const payload = {
+        ...shared,
+        num_red_bags: bagSale.bags,
+        price_per_red_bag: parseFloat(formData.price_per_red_bag),
+        loose_kg_sold: kgSale.kgSold,
+        price_per_kg: parseFloat(formData.price_per_kg),
+        kg_sold: combinedSale.totalKgSold,
+      }
+
+      const result = await supabase.from('income').insert([payload])
+      if (!result.error) return
+      if (isMissingColumnError(result.error)) {
+        await saveSplitCombinedSale(shared, bagSale, kgSale, formData)
+        return
+      }
+      throw result.error
+    }
+
+    if (combinedSale.hasBags) {
+      await saveRecord({
+        ...shared,
+        num_red_bags: bagSale.bags,
+        price_per_red_bag: parseFloat(formData.price_per_red_bag),
+        loose_kg_sold: 0,
+        kg_sold: bagSale.kgSold,
+        price_per_kg: bagSale.pricePerKg,
+      })
+      return
+    }
+
+    await saveRecord({
+      ...shared,
+      num_red_bags: 0,
+      price_per_red_bag: 0,
+      loose_kg_sold: 0,
+      kg_sold: kgSale.kgSold,
+      price_per_kg: parseFloat(formData.price_per_kg),
+    })
   }
 
   async function handleSubmit(e) {
@@ -98,18 +243,6 @@ export function IncomeForm({
 
     setLoading(true)
     try {
-      const validation = validateSaleInventory({
-        harvestId: formData.harvest_id,
-        harvests,
-        inventory,
-        requireBatch: harvests.length > 0,
-      })
-      if (!validation.ok) {
-        toast.error(validation.message)
-        setLoading(false)
-        return
-      }
-
       const shared = {
         user_id: user.id,
         date: formData.date,
@@ -118,50 +251,114 @@ export function IncomeForm({
         notes: formData.notes.trim(),
       }
 
-      if (isBagMode) {
-        const numRedBagsVal = parseFloat(formData.num_red_bags)
-        const pricePerRedBagVal = parseFloat(formData.price_per_red_bag)
-
-        if (!numRedBagsVal || numRedBagsVal <= 0) {
-          toast.error('Enter the number of bags sold by the bag.')
-          setLoading(false)
-          return
-        }
-        if (!pricePerRedBagVal || pricePerRedBagVal <= 0) {
-          toast.error('Enter the price per bag.')
-          setLoading(false)
-          return
-        }
-
-        await saveRecord({
-          ...shared,
-          num_red_bags: numRedBagsVal,
-          price_per_red_bag: pricePerRedBagVal,
-          kg_sold: bagSale.kgSold,
-          price_per_kg: bagSale.pricePerKg,
+      if (isEditing) {
+        const validation = validateSaleInventory({
+          harvestId: formData.harvest_id,
+          harvests,
+          inventory,
+          requireBatch: harvests.length > 0,
+          pendingKg,
+          pendingLooseKg: editingKgOnly || editingCombined ? kgSale.kgSold : 0,
+          pendingBagKg: editingBagOnly || editingCombined ? bagSale.kgSold : 0,
+          saleMode: editingCombined ? 'combined' : editingBagOnly ? 'bag' : 'kg',
         })
+        if (!validation.ok) {
+          toast.error(validation.message)
+          setLoading(false)
+          return
+        }
+
+        if (editingCombined) {
+          const pricePerRedBagVal = parseFloat(formData.price_per_red_bag)
+          const pricePerKgVal = parseFloat(formData.price_per_kg)
+          if (!pricePerRedBagVal || !pricePerKgVal) {
+            toast.error('Enter prices for both bags and loose kilos.')
+            setLoading(false)
+            return
+          }
+          await saveRecord({
+            ...shared,
+            num_red_bags: bagSale.bags,
+            price_per_red_bag: pricePerRedBagVal,
+            loose_kg_sold: kgSale.kgSold,
+            price_per_kg: pricePerKgVal,
+            kg_sold: combinedSale.totalKgSold,
+          })
+        } else if (editingBagOnly) {
+          const numRedBagsVal = parseFloat(formData.num_red_bags)
+          const pricePerRedBagVal = parseFloat(formData.price_per_red_bag)
+          if (!numRedBagsVal || numRedBagsVal <= 0 || !pricePerRedBagVal || pricePerRedBagVal <= 0) {
+            toast.error('Enter bags sold and price per bag.')
+            setLoading(false)
+            return
+          }
+          await saveRecord({
+            ...shared,
+            num_red_bags: numRedBagsVal,
+            price_per_red_bag: pricePerRedBagVal,
+            loose_kg_sold: 0,
+            kg_sold: bagSale.kgSold,
+            price_per_kg: bagSale.pricePerKg,
+          })
+        } else {
+          const looseKgVal = parseFloat(formData.loose_kg)
+          const pricePerKgVal = parseFloat(formData.price_per_kg)
+          if (!looseKgVal || looseKgVal <= 0 || !pricePerKgVal || pricePerKgVal <= 0) {
+            toast.error('Enter loose kilos sold and price per kg.')
+            setLoading(false)
+            return
+          }
+          await saveRecord({
+            ...shared,
+            num_red_bags: 0,
+            price_per_red_bag: 0,
+            loose_kg_sold: 0,
+            kg_sold: looseKgVal,
+            price_per_kg: pricePerKgVal,
+          })
+        }
       } else {
-        const remainingKgVal = parseFloat(formData.remaining_kg)
-        const pricePerKgVal = parseFloat(formData.price_per_kg)
-
-        if (!remainingKgVal || remainingKgVal <= 0) {
-          toast.error('Enter the remaining kilos to sell.')
-          setLoading(false)
-          return
-        }
-        if (!pricePerKgVal || pricePerKgVal <= 0) {
-          toast.error('Enter the price per kg.')
+        if (!combinedSale.hasBags && !combinedSale.hasLoose) {
+          toast.error('Enter bags sold and/or loose kilos sold.')
           setLoading(false)
           return
         }
 
-        await saveRecord({
-          ...shared,
-          num_red_bags: 0,
-          price_per_red_bag: 0,
-          kg_sold: remainingKgVal,
-          price_per_kg: pricePerKgVal,
+        const validation = validateSaleInventory({
+          harvestId: formData.harvest_id,
+          harvests,
+          inventory,
+          requireBatch: harvests.length > 0,
+          pendingKg,
+          pendingBagKg: bagSale.kgSold,
+          pendingLooseKg: kgSale.kgSold,
+          saleMode: 'combined',
         })
+        if (!validation.ok) {
+          toast.error(validation.message)
+          setLoading(false)
+          return
+        }
+
+        if (combinedSale.hasBags) {
+          const pricePerRedBagVal = parseFloat(formData.price_per_red_bag)
+          if (!pricePerRedBagVal || pricePerRedBagVal <= 0) {
+            toast.error('Enter the price per bag.')
+            setLoading(false)
+            return
+          }
+        }
+
+        if (combinedSale.hasLoose) {
+          const pricePerKgVal = parseFloat(formData.price_per_kg)
+          if (!pricePerKgVal || pricePerKgVal <= 0) {
+            toast.error('Enter the price per kg for loose kilos.')
+            setLoading(false)
+            return
+          }
+        }
+
+        await saveNewSale(shared, combinedSale, bagSale, kgSale, formData)
       }
 
       toast.success(initialData?.id ? 'Sale updated' : 'Sale recorded')
@@ -172,6 +369,9 @@ export function IncomeForm({
       setLoading(false)
     }
   }
+
+  const showBagSection = !isEditing || editingBagOnly || editingCombined
+  const showKgSection = !isEditing || editingKgOnly || editingCombined
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -206,71 +406,39 @@ export function IncomeForm({
           <select
             required
             value={formData.harvest_id}
-            onChange={(e) => setFormData({ ...formData, harvest_id: e.target.value })}
+            onChange={(e) => handleHarvestChange(e.target.value)}
             className="field-input"
           >
             <option value="">Select batch</option>
             {harvests.map((h) => {
-              const { harvestBags, remainingBags } = getHarvestInventory(
-                h,
-                linkedSales,
-                initialData?.id
-              )
+              const batchInventory = getHarvestInventory(h, linkedSales, initialData?.id)
+              const hasRemaining = batchInventory.availableKg > 0.001
               return (
                 <option key={h.id} value={h.id}>
-                  {h.date} — {formatRedBagTotal(h.kg_harvested)} ({formatWeight(h.kg_harvested)})
-                  {remainingBags < harvestBags ? ` · ${formatBags(remainingBags)} left` : ''}
+                  {h.date} — {formatHarvestRedBags(h)} ({formatWeight(getHarvestKg(h))})
+                  {hasRemaining
+                    ? ` · ${formatRedBagTotal(batchInventory.availableKg)} left (${formatWeight(batchInventory.availableKg)})`
+                    : ''}
                 </option>
               )
             })}
           </select>
           {inventory && (
             <div className="mt-3">
-              <InventorySummary
-                items={[
-                  {
-                    label: 'Harvested',
-                    value: formatBags(inventory.harvestBags),
-                    sub: formatWeight(inventory.harvestKg),
-                  },
-                  {
-                    label: 'Sold',
-                    value: formatBags(inventory.soldBags),
-                    sub: formatWeight(inventory.soldKg),
-                  },
-                  {
-                    label: 'Remaining',
-                    value: formatBags(inventory.remainingBags),
-                    sub: formatWeight(inventory.remainingKg),
-                    tone: inventory.remainingKg < 0 ? 'text-rose-300' : 'text-emerald-300',
-                  },
-                ]}
-              />
+              <InventorySummary items={inventoryItems(inventory, pendingKg)} />
             </div>
           )}
         </FormSection>
       )}
 
-      {!initialData && (
-        <FormSection title="Sale type">
-          <SegmentedControl
-            value={saleType}
-            onChange={setSaleType}
-            options={[
-              { value: 'bag', label: 'Sold by bag' },
-              { value: 'kg', label: 'Sold by kilo' },
-            ]}
-          />
-          <ComputedHint>
-            {isBagMode
-              ? 'Record whole bags sold at bag price.'
-              : 'Enter remaining kilos sold loose at price per kg.'}
-          </ComputedHint>
-        </FormSection>
+      {!isEditing && (
+        <ComputedHint>
+          Enter whole bags and loose kilos together — one Save sale records both parts.
+        </ComputedHint>
       )}
 
-      {isBagMode ? (
-        <FormSection title="Sold by bag" description={`1 bag = ${RED_BAG_KG} kg`}>
+      {showBagSection && (
+        <FormSection title="Sold by bag" description={`1 bag = ${RED_BAG_KG} kg · optional if selling loose only`}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="field-label">Bags sold</label>
@@ -278,12 +446,17 @@ export function IncomeForm({
                 type="number"
                 step="1"
                 min="0"
-                required
-                placeholder="e.g. 50"
+                placeholder="0"
                 value={formData.num_red_bags}
                 onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
                 className="field-input"
               />
+              {inventory && (
+                <ComputedHint>
+                  Up to {inventory.maxWholeBags} whole {inventory.maxWholeBags === 1 ? 'bag' : 'bags'} (
+                  {formatWeight(inventory.maxWholeBags * RED_BAG_KG)})
+                </ComputedHint>
+              )}
             </div>
             <div>
               <label className="field-label">Price / bag (₱)</label>
@@ -291,7 +464,6 @@ export function IncomeForm({
                 type="number"
                 step="0.01"
                 min="0"
-                required
                 placeholder="0.00"
                 value={formData.price_per_red_bag}
                 onChange={(e) =>
@@ -303,28 +475,34 @@ export function IncomeForm({
           </div>
           {bagSale.bags > 0 && (
             <ComputedHint>
-              {formatBags(bagSale.bags)} = {formatWeight(bagSale.kgSold)} ·{' '}
-              {formatCurrency(bagSale.income)}
+              {formatBags(bagSale.bags)} = {formatWeight(bagSale.kgSold)} · {formatCurrency(bagSale.income)}
             </ComputedHint>
           )}
         </FormSection>
-      ) : (
-        <FormSection title="Sold by kilo" description={`1 bag = ${RED_BAG_KG} kg`}>
+      )}
+
+      {showKgSection && (
+        <FormSection title="Sold by kilo" description={`Loose weight · optional if selling bags only`}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="field-label">Remaining kilos</label>
+              <label className="field-label">Loose kilos sold</label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
-                required
-                placeholder="e.g. 1350"
-                value={formData.remaining_kg}
-                onChange={(e) => setFormData({ ...formData, remaining_kg: e.target.value })}
+                max={inventory ? Math.max(looseKgAvailable, 0) : undefined}
+                placeholder="0"
+                value={formData.loose_kg}
+                onChange={(e) => setFormData({ ...formData, loose_kg: e.target.value })}
                 className="field-input"
               />
+              {inventory && looseKgAvailable > 0 && (
+                <ComputedHint>
+                  Max {formatWeight(looseKgAvailable)} loose · {formatRedBagTotal(looseKgAvailable)}
+                </ComputedHint>
+              )}
               {kgSale.kgSold > 0 && (
-                <ComputedHint>≈ {formatBags(equivalentBags)} at {RED_BAG_KG} kg/bag</ComputedHint>
+                <ComputedHint>≈ {formatRedBagTotal(kgSale.kgSold)} at {RED_BAG_KG} kg/bag</ComputedHint>
               )}
             </div>
             <div>
@@ -333,7 +511,6 @@ export function IncomeForm({
                 type="number"
                 step="0.01"
                 min="0"
-                required
                 placeholder="0.00"
                 value={formData.price_per_kg}
                 onChange={(e) => setFormData({ ...formData, price_per_kg: e.target.value })}
@@ -348,6 +525,27 @@ export function IncomeForm({
             </ComputedHint>
           )}
         </FormSection>
+      )}
+
+      {!isEditing && combinedSale.isCombined && (
+        <div className="rounded-lg border border-[#d7ffe0]/10 bg-[#d7ffe0]/5 px-3 py-2.5 text-[11px] text-[#d7ffe0]/80">
+          <p>
+            {formatCurrency(combinedSale.bag.income)} bags + {formatCurrency(combinedSale.kg.income)} loose ={' '}
+            <span className="font-semibold text-[#d7ffe0]">{formatCurrency(combinedSale.totalIncome)}</span>
+          </p>
+        </div>
+      )}
+
+      {!isEditing && combinedSale.totalKgSold > 0 && !combinedSale.isCombined && (
+        <ComputedHint>
+          Total this sale: {formatWeight(combinedSale.totalKgSold)} · {formatRedBagTotal(combinedSale.totalKgSold)}
+        </ComputedHint>
+      )}
+
+      {!isEditing && combinedSale.isCombined && (
+        <ComputedHint>
+          Total this sale: {formatWeight(combinedSale.totalKgSold)} · {formatRedBagTotal(combinedSale.totalKgSold)}
+        </ComputedHint>
       )}
 
       <FormSection>

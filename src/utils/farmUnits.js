@@ -8,21 +8,39 @@ export function kgToBags(kg) {
   return Number(kg || 0) / RED_BAG_KG
 }
 
+/** whole bags + (loose kg / 27) — e.g. 1 bag + 15 kg = 1.56 red bags */
+export function calcRedBagEquivalent(wholeBags, looseKg) {
+  return Number(wholeBags || 0) + Number(looseKg || 0) / RED_BAG_KG
+}
+
+function formatBagCount(bags) {
+  if (Math.abs(bags) < 0.001) return '0.00 red bags'
+  const sign = bags < 0 ? '−' : ''
+  const rounded = (Math.round(Math.abs(bags) * 100) / 100).toFixed(2)
+  return `${sign}${rounded} red bags`
+}
+
+export function formatRedBagEquivalent(wholeBags, looseKg) {
+  return formatBagCount(calcRedBagEquivalent(wholeBags, looseKg))
+}
+
 export function formatBags(bags) {
   const value = Number(bags || 0)
   const formatted = value.toLocaleString('en-PH', { maximumFractionDigits: 1 })
   return `${formatted} ${Math.abs(value - 1) < 0.05 ? 'bag' : 'bags'}`
 }
 
-/** Total harvest/sale weight expressed as equivalent red bags (2 decimal places). */
+/** Format total kg as red bags using whole + loose split (consistent with harvest entry). */
 export function formatRedBagTotal(totalKg) {
-  const bags = kgToBags(totalKg)
-  if (bags <= 0) return '—'
-  const formatted = Number(bags).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-  return `${formatted} red bags`
+  const { wholeBags, looseKg } = splitHarvestKg(totalKg)
+  return formatRedBagEquivalent(wholeBags, looseKg)
+}
+
+/** Whole red bags that can still be sold from remaining kg. */
+export function wholeBagsFromKg(kg) {
+  const value = Number(kg || 0)
+  if (value <= 0) return 0
+  return Math.floor(value / RED_BAG_KG + 1e-9)
 }
 
 /** Split stored total kg into whole red bags plus loose kilos. */
@@ -37,21 +55,58 @@ export function splitHarvestKg(totalKg) {
   return { wholeBags, looseKg, totalKg: total }
 }
 
-/** Human-readable bags + loose breakdown for a harvest total. */
-export function formatHarvestBreakdown(totalKg) {
-  const { wholeBags, looseKg } = splitHarvestKg(totalKg)
-  const parts = []
+export function kgFromHarvestParts(wholeBags, looseKg) {
+  return Number((bagsToKg(wholeBags) + Number(looseKg || 0)).toFixed(2))
+}
 
-  if (wholeBags > 0) parts.push(formatBags(wholeBags))
+/** Prefer stored bag parts when they match kg_harvested; otherwise split from total kg. */
+export function getHarvestParts(harvest) {
+  const storedBags = Number(harvest?.num_red_bags ?? 0)
+  const storedLoose = Number(harvest?.loose_kg ?? 0)
+  const totalKg = Number(harvest?.kg_harvested ?? 0)
+  const storedKg = kgFromHarvestParts(storedBags, storedLoose)
+  const hasStoredParts =
+    (storedBags > 0 || storedLoose > 0) &&
+    totalKg > 0 &&
+    Math.abs(storedKg - totalKg) < 0.01
+
+  if (hasStoredParts) {
+    return { wholeBags: storedBags, looseKg: storedLoose }
+  }
+
+  const { wholeBags, looseKg } = splitHarvestKg(totalKg)
+  return { wholeBags, looseKg }
+}
+
+export function getHarvestKg(harvest) {
+  const parts = getHarvestParts(harvest)
+  return kgFromHarvestParts(parts.wholeBags, parts.looseKg)
+}
+
+export function formatHarvestRedBags(harvest) {
+  const { wholeBags, looseKg } = getHarvestParts(harvest)
+  return formatRedBagEquivalent(wholeBags, looseKg)
+}
+
+export function formatHarvestBreakdown(harvestOrKg) {
+  const parts =
+    typeof harvestOrKg === 'object' && harvestOrKg !== null
+      ? getHarvestParts(harvestOrKg)
+      : splitHarvestKg(harvestOrKg)
+
+  const { wholeBags, looseKg } = parts
+  const partsText = []
+
+  if (wholeBags > 0) partsText.push(formatBags(wholeBags))
   if (looseKg > 0) {
     const looseLabel = Number.isInteger(looseKg)
       ? String(looseKg)
       : Number(looseKg).toLocaleString('en-PH', { minimumFractionDigits: 1, maximumFractionDigits: 2 })
-    parts.push(`${looseLabel} kg loose`)
+    partsText.push(`${looseLabel} kg`)
   }
 
-  if (parts.length === 0) return '—'
-  return parts.join(' + ')
+  if (partsText.length === 0) return '—'
+  return `${partsText.join(' + ')} = ${formatRedBagEquivalent(wholeBags, looseKg)}`
 }
 
 /** Income from whole red bags sold by the bag. */
@@ -87,26 +142,113 @@ export function getHarvestSoldKg(linkedSales, harvestId, excludeSaleId = null) {
 }
 
 export function getHarvestInventory(harvest, linkedSales, excludeSaleId = null, pendingKg = 0) {
-  const harvestKg = Number(harvest?.kg_harvested || 0)
-  const harvestBags = kgToBags(harvestKg)
+  const parts = getHarvestParts(harvest)
+  const harvestKg = getHarvestKg(harvest)
   const soldKg = getHarvestSoldKg(linkedSales, harvest?.id, excludeSaleId)
-  const soldBags = kgToBags(soldKg)
-  const remainingKg = harvestKg - soldKg - pendingKg
-  const remainingBags = kgToBags(remainingKg)
+  const remainingKg = Number((harvestKg - soldKg - pendingKg).toFixed(2))
+  const availableKg = Number((harvestKg - soldKg).toFixed(2))
 
-  return { harvestKg, harvestBags, soldKg, soldBags, remainingKg, remainingBags }
+  return {
+    harvestKg,
+    harvestBags: calcRedBagEquivalent(parts.wholeBags, parts.looseKg),
+    soldKg,
+    soldBags: kgToBags(soldKg),
+    remainingKg,
+    remainingBags: kgToBags(remainingKg),
+    availableKg,
+    maxWholeBags: wholeBagsFromKg(availableKg),
+    harvestParts: parts,
+  }
 }
 
-export function validateSaleInventory({ harvestId, harvests = [], inventory, requireBatch = false }) {
+/** Loose kilos available after reserving whole bags still in stock. */
+export function getLooseKgAvailable(inventory) {
+  if (!inventory) return 0
+  const wholeKg = inventory.maxWholeBags * RED_BAG_KG
+  return Number(Math.max(inventory.availableKg - wholeKg, 0).toFixed(2))
+}
+
+/** Loose kilos available after whole bags in stock and pending bag sales on this form. */
+export function getLooseKgAvailableAfterPendingBags(inventory, pendingBagKg = 0) {
+  if (!inventory) return 0
+  const afterBags = Number(Math.max(inventory.availableKg - Number(pendingBagKg || 0), 0).toFixed(2))
+  return getLooseKgAvailable({
+    ...inventory,
+    availableKg: afterBags,
+    maxWholeBags: wholeBagsFromKg(afterBags),
+  })
+}
+
+export function calcCombinedSale({ numRedBags, pricePerRedBag, looseKg, pricePerKg }) {
+  const bag = calcBagSale(numRedBags, pricePerRedBag)
+  const kg = calcKgSale(looseKg, pricePerKg)
+  return {
+    bag,
+    kg,
+    totalKgSold: Number((bag.kgSold + kg.kgSold).toFixed(2)),
+    totalIncome: bag.income + kg.income,
+    hasBags: bag.bags > 0,
+    hasLoose: kg.kgSold > 0,
+    isCombined: bag.bags > 0 && kg.kgSold > 0,
+  }
+}
+
+export function isCombinedIncomeSale(sale) {
+  return Number(sale?.num_red_bags || 0) > 0 && Number(sale?.loose_kg_sold || 0) > 0
+}
+
+export function validateSaleInventory({
+  harvestId,
+  harvests = [],
+  inventory,
+  requireBatch = false,
+  pendingKg = 0,
+  pendingBagKg = 0,
+  pendingLooseKg = 0,
+  saleMode = 'bag',
+}) {
   if (requireBatch && harvests.length > 0 && !harvestId) {
     return { ok: false, message: 'Select a harvest batch for this sale.' }
   }
 
   if (harvestId && inventory && inventory.remainingKg < -0.001) {
-    const availableKg = Math.max(inventory.harvestKg - inventory.soldKg, 0)
+    const availableKg = Math.max(inventory.availableKg, 0)
     return {
       ok: false,
-      message: `This sale exceeds remaining inventory (${availableKg.toFixed(1)} kg available).`,
+      message: `This sale exceeds remaining inventory (${availableKg.toFixed(1)} kg · ${formatRedBagTotal(availableKg)} available).`,
+    }
+  }
+
+  if (harvestId && inventory && saleMode === 'kg') {
+    const looseKg = getLooseKgAvailable(inventory)
+    if (pendingKg > looseKg + 0.001) {
+      if (inventory.maxWholeBags > 0) {
+        return {
+          ok: false,
+          message: `Only ${looseKg.toFixed(1)} kg loose is available. Sell ${inventory.maxWholeBags} whole bag(s) under Sold by bag.`,
+        }
+      }
+      return {
+        ok: false,
+        message: `This sale exceeds remaining loose inventory (${looseKg.toFixed(1)} kg · ${formatRedBagTotal(looseKg)} available).`,
+      }
+    }
+  }
+
+  if (harvestId && inventory && saleMode === 'combined') {
+    if (pendingBagKg > inventory.maxWholeBags * RED_BAG_KG + 0.001) {
+      return {
+        ok: false,
+        message: `Only ${inventory.maxWholeBags} whole bag(s) (${formatWeight(inventory.maxWholeBags * RED_BAG_KG)}) available.`,
+      }
+    }
+
+    const looseKg = getLooseKgAvailableAfterPendingBags(inventory, pendingBagKg)
+    if (pendingLooseKg > looseKg + 0.001) {
+      return {
+        ok: false,
+        message: `Only ${looseKg.toFixed(1)} kg loose available with these bag sales (${formatRedBagTotal(looseKg)}).`,
+      }
     }
   }
 

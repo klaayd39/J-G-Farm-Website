@@ -14,6 +14,7 @@ import { useDateRange } from '../hooks/useDateRange'
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency, formatWeight, formatDate, CATEGORY_LABELS } from '../utils/formatters'
+import { getHarvestKg } from '../utils/farmUnits'
 import {
   buildMonthlyChartData,
   buildCategoryChartData,
@@ -82,7 +83,7 @@ export function Dashboard() {
   const margin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : null
 
   const totalHarvestKg = useMemo(
-    () => harvestData.reduce((sum, item) => sum + Number(item.kg_harvested || 0), 0),
+    () => harvestData.reduce((sum, item) => sum + getHarvestKg(item), 0),
     [harvestData]
   )
 

@@ -17,7 +17,7 @@ import { useDateRange } from '../hooks/useDateRange'
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { supabase } from '../lib/supabase'
 import { formatCurrency, formatWeight, formatDate } from '../utils/formatters'
-import { kgToBags, formatBags } from '../utils/farmUnits'
+import { formatRedBagTotal, isCombinedIncomeSale } from '../utils/farmUnits'
 import { exportIncomeCSV } from '../utils/csvExport'
 import toast from 'react-hot-toast'
 
@@ -111,14 +111,22 @@ export function Income() {
       accessorKey: 'kg_sold',
       sortable: true,
       cell: (row) => {
-        const isBag = Number(row.num_red_bags) > 0
+        const isCombined = isCombinedIncomeSale(row)
+        const isBag = !isCombined && Number(row.num_red_bags) > 0
         return (
           <div className="flex items-start gap-2">
-            <span className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${isBag ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-500/10 text-emerald-400/90'}`}>
-              {isBag ? 'Bag' : 'Kg'}
+            <span className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${isCombined ? 'bg-[#d7ffe0]/10 text-[#d7ffe0]/90' : isBag ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-500/10 text-emerald-400/90'}`}>
+              {isCombined ? 'Both' : isBag ? 'Bag' : 'Kg'}
             </span>
             <div>
-              {isBag ? (
+              {isCombined ? (
+                <>
+                  <span className="font-medium text-slate-200">
+                    {row.num_red_bags} bag{Number(row.num_red_bags) === 1 ? '' : 's'} + {formatWeight(row.loose_kg_sold)}
+                  </span>
+                  <span className="block text-xs text-slate-500">{formatWeight(row.kg_sold)} total · {formatRedBagTotal(row.kg_sold)}</span>
+                </>
+              ) : isBag ? (
                 <>
                   <span className="font-medium text-slate-200">{row.num_red_bags} bags</span>
                   <span className="block text-xs text-slate-500">{formatWeight(row.kg_sold)}</span>
@@ -126,7 +134,7 @@ export function Income() {
               ) : (
                 <>
                   <span className="font-medium text-slate-200">{formatWeight(row.kg_sold)}</span>
-                  <span className="block text-xs text-slate-500">Sold by kilo · ≈ {formatBags(kgToBags(row.kg_sold))}</span>
+                  <span className="block text-xs text-slate-500">Sold by kilo · {formatRedBagTotal(row.kg_sold)}</span>
                 </>
               )}
             </div>
@@ -139,6 +147,14 @@ export function Income() {
       accessorKey: 'price_per_kg',
       sortable: true,
       cell: (row) => {
+        if (isCombinedIncomeSale(row)) {
+          return (
+            <div>
+              <span className="font-medium tabular-nums text-slate-300">{formatCurrency(row.price_per_red_bag)}/bag</span>
+              <span className="block text-xs tabular-nums text-slate-500">{formatCurrency(row.price_per_kg)}/kg loose</span>
+            </div>
+          )
+        }
         if (Number(row.price_per_red_bag) > 0) {
           return (
             <div>
