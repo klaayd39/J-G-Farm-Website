@@ -1,6 +1,6 @@
 export function EmptyState({ icon: Icon, title, description, action }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/12 bg-[#101916]/50 px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#d7ffe0]/15 bg-[#0a0a0a]/50 px-6 py-14 text-center">
       {Icon && (
         <div className="mb-4 rounded-2xl bg-emerald-500/10 p-3.5 text-emerald-300 ring-1 ring-emerald-400/15">
           <Icon size={28} strokeWidth={1.5} />

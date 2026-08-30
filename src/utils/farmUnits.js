@@ -14,6 +14,46 @@ export function formatBags(bags) {
   return `${formatted} ${Math.abs(value - 1) < 0.05 ? 'bag' : 'bags'}`
 }
 
+/** Total harvest/sale weight expressed as equivalent red bags (2 decimal places). */
+export function formatRedBagTotal(totalKg) {
+  const bags = kgToBags(totalKg)
+  if (bags <= 0) return '—'
+  const formatted = Number(bags).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${formatted} red bags`
+}
+
+/** Split stored total kg into whole red bags plus loose kilos. */
+export function splitHarvestKg(totalKg) {
+  const total = Number(totalKg || 0)
+  if (total <= 0) return { wholeBags: 0, looseKg: 0, totalKg: 0 }
+
+  const wholeBags = Math.floor(total / RED_BAG_KG + 1e-9)
+  let looseKg = total - wholeBags * RED_BAG_KG
+  looseKg = Math.abs(looseKg) < 0.001 ? 0 : Number(looseKg.toFixed(2))
+
+  return { wholeBags, looseKg, totalKg: total }
+}
+
+/** Human-readable bags + loose breakdown for a harvest total. */
+export function formatHarvestBreakdown(totalKg) {
+  const { wholeBags, looseKg } = splitHarvestKg(totalKg)
+  const parts = []
+
+  if (wholeBags > 0) parts.push(formatBags(wholeBags))
+  if (looseKg > 0) {
+    const looseLabel = Number.isInteger(looseKg)
+      ? String(looseKg)
+      : Number(looseKg).toLocaleString('en-PH', { minimumFractionDigits: 1, maximumFractionDigits: 2 })
+    parts.push(`${looseLabel} kg loose`)
+  }
+
+  if (parts.length === 0) return '—'
+  return parts.join(' + ')
+}
+
 /** Income from whole red bags sold by the bag. */
 export function calcBagSale(numRedBags, pricePerRedBag) {
   const bags = Number(numRedBags || 0)

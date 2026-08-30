@@ -13,7 +13,7 @@ export function DateRangeFilter({
 }) {
   return (
     <div className={cn('flex w-full flex-col gap-2 lg:w-auto lg:max-w-full', className)}>
-      <div className="flex w-full items-center gap-1.5 rounded-xl border border-white/10 bg-[#0d1714]/90 px-2 py-1.5 shadow-lg backdrop-blur-md sm:gap-2 sm:rounded-2xl sm:px-2.5">
+      <div className="flex w-full items-center gap-1.5 rounded-xl border border-white/10 bg-[#0a0a0a]/90 px-2 py-1.5 shadow-lg backdrop-blur-md sm:gap-2 sm:rounded-2xl sm:px-2.5">
         <Calendar size={14} className="shrink-0 text-emerald-400" />
         <label className="sr-only" htmlFor="date-from">
           From date
@@ -39,7 +39,7 @@ export function DateRangeFilter({
         />
       </div>
 
-      <div className="flex w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-white/10 bg-[#0d1714]/90 p-0.5 shadow-lg backdrop-blur-md no-scrollbar sm:rounded-2xl sm:p-1">
+      <div className="flex w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-white/10 bg-[#0a0a0a]/90 p-0.5 shadow-lg backdrop-blur-md no-scrollbar sm:rounded-2xl sm:p-1">
         {Object.entries(presets).map(([key, label]) => {
           const isActive = preset === key
           return (

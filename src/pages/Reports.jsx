@@ -187,7 +187,7 @@ export function Reports() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Gross Income</span>
                 <TrendingUp size={18} className="text-emerald-400/80" />
@@ -196,7 +196,7 @@ export function Reports() {
               <p className="mt-1 text-xs text-slate-400">{formatWeight(totalKgSold)} calamansi sold</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Expenses</span>
                 <TrendingDown size={18} className="text-rose-400/80" />
@@ -205,7 +205,7 @@ export function Reports() {
               <p className="mt-1 text-xs text-slate-400">{expenseData.length} expense transactions</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Net Position</span>
                 <PhilippinePeso size={18} className={netProfit >= 0 ? 'text-emerald-400/80' : 'text-amber-400/80'} />
@@ -218,7 +218,7 @@ export function Reports() {
               </p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-5 shadow-lg backdrop-blur-md">
+            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Statement Lines</span>
                 <ListChecks size={18} className="text-sky-400/80" />

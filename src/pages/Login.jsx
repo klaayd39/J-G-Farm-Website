@@ -32,14 +32,14 @@ export function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2 bg-[#070d0b]">
+    <div className="grid min-h-screen lg:grid-cols-2 bg-[#050505]">
       <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between p-12">
         <img
           src={heroImage}
           alt="J&G Calamansi Orchard"
           className="absolute inset-0 h-full w-full object-cover scale-105 filter brightness-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070d0b] via-[#070d0b]/75 to-[#070d0b]/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/75 to-[#050505]/40 backdrop-blur-[2px]" />
 
         <div className="relative z-10 flex items-center gap-3.5">
           <BrandMark size={46} />

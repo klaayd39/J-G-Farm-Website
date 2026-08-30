@@ -7,6 +7,7 @@ import {
   calcBagSale,
   calcKgSale,
   formatBags,
+  formatRedBagTotal,
   getHarvestInventory,
   kgToBags,
   validateSaleInventory,
@@ -217,7 +218,7 @@ export function IncomeForm({
               )
               return (
                 <option key={h.id} value={h.id}>
-                  {h.date} — {formatBags(harvestBags)} ({h.kg_harvested} kg)
+                  {h.date} — {formatRedBagTotal(h.kg_harvested)} ({formatWeight(h.kg_harvested)})
                   {remainingBags < harvestBags ? ` · ${formatBags(remainingBags)} left` : ''}
                 </option>
               )

@@ -83,7 +83,7 @@ export function DataTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-white/8 bg-[#0d1714]/80 shadow-xl backdrop-blur-md">
+      <div className="overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/80 shadow-xl backdrop-blur-md">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-200">
             <thead className="border-b border-white/8 bg-black/30 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">

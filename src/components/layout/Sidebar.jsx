@@ -10,7 +10,7 @@ export function Sidebar({ onClose }) {
   const initial = displayName.trim().charAt(0).toUpperCase()
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-white/8 bg-[#091310]/95 px-3.5 py-5 shadow-2xl backdrop-blur-xl">
+    <aside className="flex h-full w-full flex-col border-r border-[#d7ffe0]/10 bg-[#050505]/95 px-3.5 py-5 shadow-2xl backdrop-blur-xl">
       <div className="flex items-center gap-3 px-1.5 pb-6">
         <BrandMark size={36} />
         <div className="min-w-0">
@@ -40,7 +40,7 @@ export function Sidebar({ onClose }) {
                   <Icon size={18} strokeWidth={isActive ? 2.2 : 1.75} className={`shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'}`} />
                   <span className="truncate">{item.label}</span>
                   {isActive && (
-                    <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                    <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-[#d7ffe0] shadow-[0_0_8px_rgba(215,255,224,0.8)]" />
                   )}
                 </>
               )}
@@ -51,7 +51,7 @@ export function Sidebar({ onClose }) {
 
       <div className="mt-4 rounded-2xl border border-white/8 bg-gradient-to-b from-white/[0.05] to-transparent p-3 shadow-inner">
         <div className="mb-3 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d7ffe0] text-xs font-bold text-[#050505] shadow-md shadow-[#d7ffe0]/20">
             {initial}
           </div>
           <div className="min-w-0 flex-1">

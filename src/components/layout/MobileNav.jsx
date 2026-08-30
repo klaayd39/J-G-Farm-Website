@@ -3,7 +3,7 @@ import { NAV_ITEMS } from '../../nav'
 
 export function MobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/8 bg-[#0b1411]/95 px-1 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#d7ffe0]/10 bg-[#050505]/95 px-1 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex h-14 max-w-md items-stretch justify-around">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon

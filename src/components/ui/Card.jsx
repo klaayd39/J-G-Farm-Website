@@ -25,7 +25,7 @@ export function Card({ title, value, subtitle, icon: Icon, color = 'emerald' }) 
   const selected = accent[color] || accent.emerald
 
   return (
-    <div className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#0e1613] p-3.5 transition-colors hover:border-white/[0.12] sm:rounded-2xl sm:p-5">
+    <div className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#d7ffe0]/10 bg-[#0a0a0a] p-3.5 transition-colors hover:border-[#d7ffe0]/15 sm:rounded-2xl sm:p-5">
       <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br ${selected.glow} opacity-40 blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-2">
         <p className="min-w-0 truncate text-[10px] font-medium uppercase tracking-wider text-slate-500 sm:text-[11px]">{title}</p>

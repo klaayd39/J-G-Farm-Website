@@ -26,9 +26,9 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
       ref={dialogRef}
       onClose={onClose}
       onClick={handleBackdropClick}
-      className={`${maxWidth} max-h-[90vh] sm:max-h-[85vh] w-[calc(100%-1.5rem)] sm:w-full rounded-xl border border-white/[0.08] bg-[#0e1613] p-0 text-white shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm overflow-hidden my-auto mx-auto`}
+      className={`${maxWidth} max-h-[90vh] sm:max-h-[85vh] w-[calc(100%-1.5rem)] sm:w-full rounded-xl border border-[#d7ffe0]/10 bg-[#0a0a0a] p-0 text-[#d7ffe0] shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm overflow-hidden my-auto mx-auto`}
     >
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5 sticky top-0 bg-[#0e1613] z-10">
+      <div className="flex items-center justify-between border-b border-[#d7ffe0]/8 px-5 py-3.5 sticky top-0 bg-[#0a0a0a] z-10">
         <h2 className="text-sm font-medium text-white pr-2 truncate">{title}</h2>
         <button
           type="button"

@@ -17,7 +17,7 @@ import { useDateRange } from '../hooks/useDateRange'
 import { useQueryErrorToast } from '../hooks/useQueryErrorToast'
 import { supabase } from '../lib/supabase'
 import { formatWeight, formatDate } from '../utils/formatters'
-import { kgToBags, formatBags } from '../utils/farmUnits'
+import { formatRedBagTotal } from '../utils/farmUnits'
 import { exportHarvestsCSV } from '../utils/csvExport'
 import toast from 'react-hot-toast'
 
@@ -59,8 +59,6 @@ export function Harvests() {
     [harvestData]
   )
 
-  const totalHarvestBags = useMemo(() => kgToBags(totalHarvestKg), [totalHarvestKg])
-
   const columns = [
     {
       header: 'Date',
@@ -85,7 +83,7 @@ export function Harvests() {
       sortable: true,
       cell: (row) => (
         <div>
-          <span className="font-display font-semibold tracking-tight text-white">{formatBags(kgToBags(row.kg_harvested))}</span>
+          <span className="font-display font-semibold tracking-tight text-white">{formatRedBagTotal(row.kg_harvested)}</span>
           <span className="block text-xs text-slate-400">{formatWeight(row.kg_harvested)}</span>
         </div>
       ),
@@ -136,7 +134,7 @@ export function Harvests() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <Card title="Total harvested" value={formatBags(totalHarvestBags)} subtitle={`${formatWeight(totalHarvestKg)} · ${harvestData.length} batches`} icon={Trees} color="emerald" />
+      <Card title="Total harvested" value={formatRedBagTotal(totalHarvestKg)} subtitle={`${formatWeight(totalHarvestKg)} · ${harvestData.length} batches`} icon={Trees} color="emerald" />
 
       {loading ? (
         <LoadingSpinner text="Loading harvest records…" />

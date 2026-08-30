@@ -61,7 +61,7 @@ export const CATEGORY_LABELS = {
  * Colors for each expense category (for charts and badges)
  */
 export const CATEGORY_COLORS = {
-  fertilizer: '#10b981',
+  fertilizer: '#d7ffe0',
   pesticides: '#f59e0b',
   labor: '#6366f1',
   tools_equipment: '#8b5cf6',

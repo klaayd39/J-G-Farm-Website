@@ -3,6 +3,9 @@ import {
   RED_BAG_KG,
   bagsToKg,
   kgToBags,
+  splitHarvestKg,
+  formatRedBagTotal,
+  formatHarvestBreakdown,
   calcBagSale,
   calcKgSale,
   getHarvestSoldKg,
@@ -14,6 +17,24 @@ describe('farmUnits', () => {
   it('converts bags to kg at 27 kg per bag', () => {
     expect(bagsToKg(100)).toBe(2700)
     expect(kgToBags(2700)).toBe(100)
+  })
+
+  it('splits harvest totals into whole bags and loose kilos', () => {
+    expect(splitHarvestKg(42)).toEqual({ wholeBags: 1, looseKg: 15, totalKg: 42 })
+    expect(splitHarvestKg(15)).toEqual({ wholeBags: 0, looseKg: 15, totalKg: 15 })
+    expect(splitHarvestKg(27)).toEqual({ wholeBags: 1, looseKg: 0, totalKg: 27 })
+  })
+
+  it('formats total harvest as equivalent red bags', () => {
+    expect(formatRedBagTotal(42)).toBe('1.56 red bags')
+    expect(formatRedBagTotal(15)).toBe('0.56 red bags')
+    expect(formatRedBagTotal(27)).toBe('1.00 red bags')
+  })
+
+  it('formats harvest breakdown without misleading bag equivalents', () => {
+    expect(formatHarvestBreakdown(42)).toBe('1 bag + 15 kg loose')
+    expect(formatHarvestBreakdown(15)).toBe('15 kg loose')
+    expect(formatHarvestBreakdown(27)).toBe('1 bag')
   })
 
   it('calculates bag sale income and derived kg pricing', () => {

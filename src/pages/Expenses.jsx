@@ -187,7 +187,7 @@ export function Expenses() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-gradient-to-b from-[#111e19]/90 to-[#0c1613]/90 p-3.5 sm:p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-3.5 sm:p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 overflow-x-auto pb-1 sm:pb-0 min-w-0">
           <div className="flex shrink-0 items-center gap-1 text-slate-400 pr-1">
             <Filter size={14} className="text-emerald-400" />

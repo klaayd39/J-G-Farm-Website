@@ -23,7 +23,7 @@ export function ExpenseBreakdown({ data = [] }) {
     if (active && payload && payload.length) {
       const item = payload[0].payload
       return (
-        <div className="rounded-2xl border border-white/12 bg-[#0c1613]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
+        <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.name}</p>
           <p className="mt-1 text-base font-bold text-white">{formatCurrency(item.value)}</p>
           <p className="text-xs font-medium text-emerald-400">{item.percentage}% of total expenses</p>

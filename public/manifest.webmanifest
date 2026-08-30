@@ -4,8 +4,8 @@
   "description": "Calamansi farm harvest, sales, and expense tracker",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#070d0b",
-  "theme_color": "#08110e",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "icons": [
     {
       "src": "/icon-192.png",

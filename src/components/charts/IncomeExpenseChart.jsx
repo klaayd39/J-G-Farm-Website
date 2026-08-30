@@ -26,7 +26,7 @@ export function IncomeExpenseChart({ data = [] }) {
       const profit = income - expense
 
       return (
-        <div className="rounded-2xl border border-white/12 bg-[#0c1613]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
+        <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center justify-between gap-4">
@@ -62,8 +62,8 @@ export function IncomeExpenseChart({ data = [] }) {
         <BarChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
           <defs>
             <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#34d399" stopOpacity={0.95} />
-              <stop offset="100%" stopColor="#059669" stopOpacity={0.75} />
+              <stop offset="0%" stopColor="#d7ffe0" stopOpacity={0.95} />
+              <stop offset="100%" stopColor="#a8e8b8" stopOpacity={0.75} />
             </linearGradient>
             <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#f87171" stopOpacity={0.95} />

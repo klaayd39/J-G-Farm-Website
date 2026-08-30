@@ -15,7 +15,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
         <LoadingSpinner text="Checking authentication..." />
       </div>
     )
@@ -33,7 +33,7 @@ function PublicRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
         <LoadingSpinner text="Loading..." />
       </div>
     )
@@ -53,16 +53,16 @@ export function App() {
         position="top-right"
         toastOptions={{
           style: {
-            background: '#0f172a',
-            color: '#f8fafc',
-            border: '1px solid #334155',
+            background: '#0a0a0a',
+            color: '#d7ffe0',
+            border: '1px solid rgba(215, 255, 224, 0.15)',
             borderRadius: '16px',
             fontSize: '13px',
           },
           success: {
             iconTheme: {
-              primary: '#10b981',
-              secondary: '#0f172a',
+              primary: '#d7ffe0',
+              secondary: '#050505',
             },
           },
         }}
