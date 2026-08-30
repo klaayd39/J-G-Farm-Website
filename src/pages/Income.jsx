@@ -235,7 +235,7 @@ export function Income() {
           <button type="button" onClick={() => { setEditingItem(row); setModalOpen(true) }} className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white" title="Edit record">
             <Pencil size={15} />
           </button>
-          <button type="button" onClick={() => setDeleteId(row.id)} className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300" title="Delete record">
+          <button type="button" onClick={() => { setModalOpen(false); setEditingItem(null); setDeleteId(row.id) }} className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300" title="Delete record">
             <Trash2 size={15} />
           </button>
         </div>

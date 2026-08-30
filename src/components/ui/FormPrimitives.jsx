@@ -102,12 +102,7 @@ export function FormTotal({ label, amount, lines = [] }) {
 
 export function FormActions({ children, className = '' }) {
   return (
-    <div
-      className={cn(
-        'sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t border-white/[0.06] bg-[#0a0a0a]/95 px-4 py-3 backdrop-blur-sm sm:-mx-5 sm:px-5 sm:py-4',
-        className
-      )}
-    >
+    <div className={cn('flex items-center justify-end gap-2 border-t border-white/[0.06] pt-4', className)}>
       {children}
     </div>
   )
