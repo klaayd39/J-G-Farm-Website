@@ -57,14 +57,13 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  async function signUp(email, password, fullName, role = 'staff') {
+  async function signUp(email, password, fullName) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-          role,
         },
       },
     })
@@ -78,7 +77,7 @@ export function AuthProvider({ children }) {
     setProfile(null)
   }
 
-  const isOwner = (profile?.role || 'owner') === 'owner'
+  const isOwner = profile?.role === 'owner'
   const isStaff = profile?.role === 'staff'
 
   const value = {

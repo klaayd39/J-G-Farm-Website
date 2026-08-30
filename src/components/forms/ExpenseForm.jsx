@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { todayISO, CATEGORY_LABELS } from '../../utils/formatters'
+import { getReceiptSignedUrl, normalizeReceiptPath } from '../../utils/receiptStorage'
 import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
@@ -10,7 +11,8 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [receiptUrl, setReceiptUrl] = useState(initialData?.receipt_url || '')
+  const [receiptUrl, setReceiptUrl] = useState(normalizeReceiptPath(initialData?.receipt_url || ''))
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState('')
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
     category: initialData?.category || (defaultCategory && defaultCategory !== 'all' ? defaultCategory : 'fertilizer'),
@@ -24,6 +26,29 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
       setFormData((prev) => ({ ...prev, category: defaultCategory }))
     }
   }, [defaultCategory, initialData])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadPreview() {
+      if (!receiptUrl) {
+        if (active) setReceiptPreviewUrl('')
+        return
+      }
+
+      try {
+        const signedUrl = await getReceiptSignedUrl(receiptUrl)
+        if (active) setReceiptPreviewUrl(signedUrl)
+      } catch {
+        if (active) setReceiptPreviewUrl('')
+      }
+    }
+
+    loadPreview()
+    return () => {
+      active = false
+    }
+  }, [receiptUrl])
 
   async function handleFileUpload(e) {
     const file = e.target.files?.[0]
@@ -41,8 +66,7 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
 
       if (error) throw error
 
-      const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(data.path)
-      setReceiptUrl(publicUrlData.publicUrl)
+      setReceiptUrl(data.path)
       toast.success('Receipt photo attached!')
     } catch (err) {
       toast.error(err.message || 'Failed to upload image. (Ensure receipts bucket exists)')
@@ -151,10 +175,10 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
               <span>{uploading ? 'Uploading…' : receiptUrl ? 'Change Receipt' : 'Upload Receipt'}</span>
               <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </label>
-            {receiptUrl && (
+            {receiptUrl && receiptPreviewUrl && (
               <div className="flex items-center gap-1.5">
                 <a
-                  href={receiptUrl}
+                  href={receiptPreviewUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="flex h-[46px] w-[46px] items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20"

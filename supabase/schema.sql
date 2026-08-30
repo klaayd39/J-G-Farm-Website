@@ -54,7 +54,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'staff')
+    'staff'
   );
   RETURN NEW;
 END;
@@ -65,6 +65,28 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
+
+CREATE OR REPLACE FUNCTION public.prevent_profile_role_change()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.role IS DISTINCT FROM OLD.role THEN
+    IF current_user IN ('postgres', 'supabase_admin') THEN
+      RETURN NEW;
+    END IF;
+    RAISE EXCEPTION 'Role changes must be done by an administrator in Supabase';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS prevent_profile_role_change ON profiles;
+CREATE TRIGGER prevent_profile_role_change
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.prevent_profile_role_change();
 
 -- 3. Harvests (must exist before income FK)
 CREATE TABLE IF NOT EXISTS harvests (
@@ -80,18 +102,18 @@ CREATE TABLE IF NOT EXISTS harvests (
 
 ALTER TABLE harvests ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view own harvests" ON harvests;
-CREATE POLICY "Users can view own harvests"
-  ON harvests FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can insert own harvests" ON harvests;
-CREATE POLICY "Users can insert own harvests"
-  ON harvests FOR INSERT WITH CHECK (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can update own harvests" ON harvests;
-CREATE POLICY "Users can update own harvests"
-  ON harvests FOR UPDATE USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can delete own harvests" ON harvests;
-CREATE POLICY "Users can delete own harvests"
-  ON harvests FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can view all harvests" ON harvests;
+CREATE POLICY "Farm team can view all harvests"
+  ON harvests FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can insert harvests" ON harvests;
+CREATE POLICY "Farm team can insert harvests"
+  ON harvests FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can update all harvests" ON harvests;
+CREATE POLICY "Farm team can update all harvests"
+  ON harvests FOR UPDATE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can delete all harvests" ON harvests;
+CREATE POLICY "Farm team can delete all harvests"
+  ON harvests FOR DELETE TO authenticated USING (true);
 
 -- 4. Income
 CREATE TABLE IF NOT EXISTS income (
@@ -116,18 +138,18 @@ CREATE TABLE IF NOT EXISTS income (
 
 ALTER TABLE income ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view own income" ON income;
-CREATE POLICY "Users can view own income"
-  ON income FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can insert own income" ON income;
-CREATE POLICY "Users can insert own income"
-  ON income FOR INSERT WITH CHECK (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can update own income" ON income;
-CREATE POLICY "Users can update own income"
-  ON income FOR UPDATE USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can delete own income" ON income;
-CREATE POLICY "Users can delete own income"
-  ON income FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can view all income" ON income;
+CREATE POLICY "Farm team can view all income"
+  ON income FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can insert income" ON income;
+CREATE POLICY "Farm team can insert income"
+  ON income FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can update all income" ON income;
+CREATE POLICY "Farm team can update all income"
+  ON income FOR UPDATE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can delete all income" ON income;
+CREATE POLICY "Farm team can delete all income"
+  ON income FOR DELETE TO authenticated USING (true);
 
 -- 5. Expenses
 CREATE TABLE IF NOT EXISTS expenses (
@@ -144,18 +166,18 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view own expenses" ON expenses;
-CREATE POLICY "Users can view own expenses"
-  ON expenses FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can insert own expenses" ON expenses;
-CREATE POLICY "Users can insert own expenses"
-  ON expenses FOR INSERT WITH CHECK (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can update own expenses" ON expenses;
-CREATE POLICY "Users can update own expenses"
-  ON expenses FOR UPDATE USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can delete own expenses" ON expenses;
-CREATE POLICY "Users can delete own expenses"
-  ON expenses FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can view all expenses" ON expenses;
+CREATE POLICY "Farm team can view all expenses"
+  ON expenses FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can insert expenses" ON expenses;
+CREATE POLICY "Farm team can insert expenses"
+  ON expenses FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Farm team can update all expenses" ON expenses;
+CREATE POLICY "Farm team can update all expenses"
+  ON expenses FOR UPDATE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farm team can delete all expenses" ON expenses;
+CREATE POLICY "Farm team can delete all expenses"
+  ON expenses FOR DELETE TO authenticated USING (true);
 
 -- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_income_user_date ON income(user_id, date DESC);
@@ -163,16 +185,16 @@ CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date DESC
 CREATE INDEX IF NOT EXISTS idx_harvests_user_date ON harvests(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(user_id, category);
 
--- 7. Receipts storage bucket (public so getPublicUrl works)
+-- 7. Receipts storage bucket (private — use signed URLs in the app)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'receipts',
   'receipts',
-  true,
+  false,
   5242880,
   ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 )
-ON CONFLICT (id) DO UPDATE SET public = true;
+ON CONFLICT (id) DO UPDATE SET public = false;
 
 DROP POLICY IF EXISTS "Users can upload receipts" ON storage.objects;
 CREATE POLICY "Users can upload receipts"
@@ -182,17 +204,9 @@ CREATE POLICY "Users can upload receipts"
     AND auth.uid()::text = (storage.foldername(name))[1]
   );
 
-DROP POLICY IF EXISTS "Users can view own receipts" ON storage.objects;
-CREATE POLICY "Users can view own receipts"
+DROP POLICY IF EXISTS "Farm team can view all receipts" ON storage.objects;
+CREATE POLICY "Farm team can view all receipts"
   ON storage.objects FOR SELECT TO authenticated
-  USING (
-    bucket_id = 'receipts'
-    AND auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-DROP POLICY IF EXISTS "Public can read receipts" ON storage.objects;
-CREATE POLICY "Public can read receipts"
-  ON storage.objects FOR SELECT TO public
   USING (bucket_id = 'receipts');
 
 DROP POLICY IF EXISTS "Users can delete own receipts" ON storage.objects;
@@ -202,3 +216,6 @@ CREATE POLICY "Users can delete own receipts"
     bucket_id = 'receipts'
     AND auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- Promote farm owner (run manually after first signup):
+-- UPDATE profiles SET role = 'owner' WHERE email = 'your-email@farm.ph';

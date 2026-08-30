@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Download, Pencil, Trash2, Receipt, Image as ImageIcon, Filter } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, Receipt, Filter } from 'lucide-react'
 import { DataTable } from '../components/ui/DataTable'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { ReceiptLink } from '../components/ui/ReceiptLink'
 import { ExpenseForm } from '../components/forms/ExpenseForm'
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery'
 import { supabase } from '../lib/supabase'
@@ -104,20 +105,7 @@ export function Expenses() {
     },
     {
       header: 'Receipt',
-      cell: (row) =>
-        row.receipt_url ? (
-          <a
-            href={row.receipt_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20"
-          >
-            <ImageIcon size={13} />
-            Photo
-          </a>
-        ) : (
-          <span className="text-xs text-slate-600">—</span>
-        ),
+      cell: (row) => <ReceiptLink receiptPath={row.receipt_url} />,
     },
     {
       header: '',
