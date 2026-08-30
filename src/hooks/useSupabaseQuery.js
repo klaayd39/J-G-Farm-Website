@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, isJwtAuthError } from '../lib/supabase'
 
 /**
  * Generic hook for Supabase queries with loading/error states.
@@ -42,7 +42,13 @@ export function useSupabaseQuery(table, options = {}, deps = []) {
 
       const { data: result, error: fetchError } = await query
 
-      if (fetchError) throw fetchError
+      if (fetchError) {
+        if (isJwtAuthError(fetchError)) {
+          await supabase.auth.signOut()
+          throw new Error('Your session expired. Please sign in again.')
+        }
+        throw fetchError
+      }
       setData(result || [])
     } catch (err) {
       setError(err.message || 'Failed to fetch data')

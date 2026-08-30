@@ -11,5 +11,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  }
 )
+
+export function isJwtAuthError(error) {
+  if (!error) return false
+  const message = String(error.message || error).toLowerCase()
+  return (
+    message.includes('jwt') ||
+    (message.includes('token') && message.includes('expired')) ||
+    error.code === 'PGRST301'
+  )
+}

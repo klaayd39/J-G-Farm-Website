@@ -8,7 +8,6 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch profile for the current user
   async function fetchProfile(userId) {
     try {
       const { data, error } = await supabase
@@ -20,13 +19,23 @@ export function AuthProvider({ children }) {
         setProfile(data)
       }
     } catch {
-      // Fallback
+      // Profile fetch failed — user session may still be valid
     }
   }
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let active = true
+
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!active) return
+      if (error) {
+        console.error('Session error:', error.message)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+
       const currentUser = session?.user ?? null
       setUser(currentUser)
       if (currentUser) {
@@ -35,21 +44,28 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user ?? null
-        setUser(currentUser)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return
+
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+
+      // Defer Supabase calls — avoids JWT lockups inside this callback
+      setTimeout(() => {
+        if (!active) return
         if (currentUser) {
-          await fetchProfile(currentUser.id)
+          fetchProfile(currentUser.id)
         } else {
           setProfile(null)
         }
         setLoading(false)
-      }
-    )
+      }, 0)
+    })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function signIn(email, password) {
@@ -72,11 +88,7 @@ export function AuthProvider({ children }) {
     signOut,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
@@ -86,4 +98,3 @@ export function useAuth() {
   }
   return context
 }
-

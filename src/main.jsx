@@ -5,8 +5,16 @@ import App from './App.jsx'
 import './index.css'
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      for (const registration of registrations) {
+        await registration.update()
+      }
+      await navigator.serviceWorker.register('/sw.js')
+    } catch {
+      // Service worker is optional
+    }
   })
 }
 

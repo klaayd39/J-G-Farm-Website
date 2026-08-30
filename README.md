@@ -108,6 +108,24 @@ In **Providers → Email**:
 
 Security headers are configured in `vercel.json`.
 
+## Troubleshooting
+
+### JWT / session errors
+
+If you see **"JWT expired"**, **"Invalid JWT"**, or **PGRST301**:
+
+1. **Hard refresh** the app (`Cmd+Shift+R` / `Ctrl+Shift+R`) to pick up the fixed service worker.
+2. **Sign out and sign in again** to get a fresh token.
+3. **Verify Vercel env vars** match Supabase → Settings → API exactly:
+   - `VITE_SUPABASE_URL` = Project URL
+   - `VITE_SUPABASE_ANON_KEY` = anon/public key (not the service role key)
+4. In **Supabase → Authentication → URL Configuration**, confirm:
+   - Site URL matches your deployed domain
+   - Redirect URLs include `https://your-domain/**` and `http://localhost:5173/**`
+5. **Redeploy** on Vercel after changing environment variables.
+
+The app never caches Supabase API requests. If problems persist after a hard refresh, clear site data for the domain in your browser settings.
+
 ## Project structure
 
 ```
