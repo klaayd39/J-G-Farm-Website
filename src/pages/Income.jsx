@@ -239,6 +239,7 @@ export function Income() {
         <IncomeForm
           initialData={editingItem}
           harvests={harvestData}
+          linkedSales={incomeData}
           onSuccess={() => {
             setModalOpen(false)
             refetch()
