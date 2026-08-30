@@ -110,31 +110,15 @@ describe('farmUnits', () => {
     expect(inventory.harvestKg).toBe(42)
   })
 
-  it('limits loose kg sales when whole bags remain', () => {
-    const harvest = { id: 'h1', kg_harvested: 42 }
-    const inventory = getHarvestInventory(harvest, [], null, 0)
-    expect(getLooseKgAvailable(inventory)).toBe(15)
-    expect(inventory.maxWholeBags).toBe(1)
-
+  it('does not block sales that go past remaining harvest kg', () => {
+    const harvest = { id: 'h1', kg_harvested: 547 }
     expect(
       validateSaleInventory({
         harvestId: 'h1',
         harvests: [harvest],
-        inventory,
-        pendingKg: 15,
-        saleMode: 'kg',
+        requireBatch: true,
       }).ok
     ).toBe(true)
-
-    expect(
-      validateSaleInventory({
-        harvestId: 'h1',
-        harvests: [harvest],
-        inventory,
-        pendingKg: 20,
-        saleMode: 'kg',
-      }).ok
-    ).toBe(false)
   })
 
   it('supports combined bag and loose sales on one save', () => {
@@ -168,17 +152,14 @@ describe('farmUnits', () => {
     ).toBe(true)
   })
 
-  it('rejects overselling a harvest batch', () => {
-    const harvest = { id: 'h1', kg_harvested: 2700 }
-    const sales = [{ id: '1', harvest_id: 'h1', kg_sold: 2000 }]
-    const inventory = getHarvestInventory(harvest, sales, null, 800)
-    const result = validateSaleInventory({
-      harvestId: 'h1',
-      harvests: [harvest],
-      inventory,
-      requireBatch: true,
-    })
-    expect(result.ok).toBe(false)
+  it('still requires a batch when harvests exist', () => {
+    expect(
+      validateSaleInventory({
+        harvestId: 'h1',
+        harvests: [{ id: 'h1', kg_harvested: 2700 }],
+        requireBatch: true,
+      }).ok
+    ).toBe(true)
   })
 
   it('requires a batch when harvests exist', () => {

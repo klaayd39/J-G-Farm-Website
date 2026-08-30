@@ -78,48 +78,9 @@ CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date DESC
 CREATE INDEX IF NOT EXISTS idx_harvests_user_date ON harvests(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(user_id, category);
 
--- 5. Block overselling a harvest batch (server-side safety net)
-CREATE OR REPLACE FUNCTION public.check_harvest_sale_inventory()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SET search_path = public
-AS $$
-DECLARE
-  harvest_kg NUMERIC;
-  sold_kg NUMERIC;
-BEGIN
-  IF NEW.harvest_id IS NULL OR COALESCE(NEW.kg_sold, 0) <= 0 THEN
-    RETURN NEW;
-  END IF;
-
-  SELECT COALESCE(h.kg_harvested, 0)
-  INTO harvest_kg
-  FROM harvests h
-  WHERE h.id = NEW.harvest_id;
-
-  IF harvest_kg IS NULL THEN
-    RAISE EXCEPTION 'Harvest batch not found';
-  END IF;
-
-  SELECT COALESCE(SUM(i.kg_sold), 0)
-  INTO sold_kg
-  FROM income i
-  WHERE i.harvest_id = NEW.harvest_id
-    AND i.id IS DISTINCT FROM NEW.id;
-
-  IF sold_kg + NEW.kg_sold > harvest_kg + 0.001 THEN
-    RAISE EXCEPTION 'This sale exceeds remaining harvest inventory (%.1f kg available)', GREATEST(harvest_kg - sold_kg, 0);
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
+-- 5. Do not cap sales by remaining harvest inventory
 DROP TRIGGER IF EXISTS check_harvest_sale_inventory ON income;
-CREATE TRIGGER check_harvest_sale_inventory
-  BEFORE INSERT OR UPDATE OF harvest_id, kg_sold ON income
-  FOR EACH ROW
-  EXECUTE FUNCTION public.check_harvest_sale_inventory();
+DROP FUNCTION IF EXISTS public.check_harvest_sale_inventory();
 
 -- Done. Refresh Supabase schema cache: Settings → API → Reload schema (if available)
 -- or wait ~1 minute for PostgREST to pick up column changes.

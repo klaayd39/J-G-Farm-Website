@@ -161,22 +161,17 @@ export function getHarvestInventory(harvest, linkedSales, excludeSaleId = null, 
   }
 }
 
-/** Loose kilos available after reserving whole bags still in stock. */
+/** Leftover kilos if every remaining whole bag is sold. */
 export function getLooseKgAvailable(inventory) {
   if (!inventory) return 0
   const wholeKg = inventory.maxWholeBags * RED_BAG_KG
   return Number(Math.max(inventory.availableKg - wholeKg, 0).toFixed(2))
 }
 
-/** Loose kilos available after whole bags in stock and pending bag sales on this form. */
+/** Kilos still sellable after bags entered on this form. */
 export function getLooseKgAvailableAfterPendingBags(inventory, pendingBagKg = 0) {
   if (!inventory) return 0
-  const afterBags = Number(Math.max(inventory.availableKg - Number(pendingBagKg || 0), 0).toFixed(2))
-  return getLooseKgAvailable({
-    ...inventory,
-    availableKg: afterBags,
-    maxWholeBags: wholeBagsFromKg(afterBags),
-  })
+  return Number(Math.max(inventory.availableKg - Number(pendingBagKg || 0), 0).toFixed(2))
 }
 
 export function calcCombinedSale({ numRedBags, pricePerRedBag, looseKg, pricePerKg }) {
@@ -200,56 +195,10 @@ export function isCombinedIncomeSale(sale) {
 export function validateSaleInventory({
   harvestId,
   harvests = [],
-  inventory,
   requireBatch = false,
-  pendingKg = 0,
-  pendingBagKg = 0,
-  pendingLooseKg = 0,
-  saleMode = 'bag',
 }) {
   if (requireBatch && harvests.length > 0 && !harvestId) {
     return { ok: false, message: 'Select a harvest batch for this sale.' }
-  }
-
-  if (harvestId && inventory && inventory.remainingKg < -0.001) {
-    const availableKg = Math.max(inventory.availableKg, 0)
-    return {
-      ok: false,
-      message: `This sale exceeds remaining inventory (${availableKg.toFixed(1)} kg · ${formatRedBagTotal(availableKg)} available).`,
-    }
-  }
-
-  if (harvestId && inventory && saleMode === 'kg') {
-    const looseKg = getLooseKgAvailable(inventory)
-    if (pendingKg > looseKg + 0.001) {
-      if (inventory.maxWholeBags > 0) {
-        return {
-          ok: false,
-          message: `Only ${looseKg.toFixed(1)} kg loose is available. Sell ${inventory.maxWholeBags} whole bag(s) under Sold by bag.`,
-        }
-      }
-      return {
-        ok: false,
-        message: `This sale exceeds remaining loose inventory (${looseKg.toFixed(1)} kg · ${formatRedBagTotal(looseKg)} available).`,
-      }
-    }
-  }
-
-  if (harvestId && inventory && saleMode === 'combined') {
-    if (pendingBagKg > inventory.maxWholeBags * RED_BAG_KG + 0.001) {
-      return {
-        ok: false,
-        message: `Only ${inventory.maxWholeBags} whole bag(s) (${formatWeight(inventory.maxWholeBags * RED_BAG_KG)}) available.`,
-      }
-    }
-
-    const looseKg = getLooseKgAvailableAfterPendingBags(inventory, pendingBagKg)
-    if (pendingLooseKg > looseKg + 0.001) {
-      return {
-        ok: false,
-        message: `Only ${looseKg.toFixed(1)} kg loose available with these bag sales (${formatRedBagTotal(looseKg)}).`,
-      }
-    }
   }
 
   return { ok: true }

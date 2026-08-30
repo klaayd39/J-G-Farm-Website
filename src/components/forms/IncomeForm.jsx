@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO, formatCurrency, formatWeight, formatDate, formatTime, formatUserLabel, nowTimeHHMM } from '../../utils/formatters'
+import { todayISO, formatCurrency, formatWeight, formatDate, formatDateTime, formatUserLabel, nowTimeHHMM } from '../../utils/formatters'
 import {
   RED_BAG_KG,
   calcBagSale,
@@ -10,11 +10,8 @@ import {
   formatBags,
   formatRedBagTotal,
   formatHarvestRedBags,
-  getHarvestKg,
   getHarvestInventory,
   validateSaleInventory,
-  getLooseKgAvailable,
-  getLooseKgAvailableAfterPendingBags,
   isCombinedIncomeSale,
 } from '../../utils/farmUnits'
 import { isMissingColumnError, omitKeys } from '../../utils/supabaseErrors'
@@ -151,27 +148,8 @@ export function IncomeForm({
     ? getHarvestInventory(selectedHarvest, linkedSales, initialData?.id, pendingKg)
     : null
 
-  const looseKgAvailable = inventory
-    ? getLooseKgAvailableAfterPendingBags(inventory, bagSale.kgSold)
-    : 0
-
   function handleHarvestChange(harvestId) {
-    const harvest = harvests.find((h) => h.id === harvestId)
-    if (!harvest) {
-      setFormData((prev) => ({ ...prev, harvest_id: harvestId }))
-      return
-    }
-
-    const inv = getHarvestInventory(harvest, linkedSales, initialData?.id)
-    const loose = getLooseKgAvailable(inv)
-    const wholeBags = inv.maxWholeBags
-
-    setFormData((prev) => ({
-      ...prev,
-      harvest_id: harvestId,
-      num_red_bags: !isEditing && wholeBags > 0 ? String(wholeBags) : '',
-      loose_kg: !isEditing && loose > 0 ? String(loose) : '',
-    }))
+    setFormData((prev) => ({ ...prev, harvest_id: harvestId }))
   }
 
   async function saveRecord(payload) {
@@ -451,8 +429,6 @@ export function IncomeForm({
             <option value="">Choose a batch…</option>
             {harvests.map((h) => {
               const batchInventory = getHarvestInventory(h, linkedSales, initialData?.id)
-              const hasRemaining = batchInventory.availableKg > 0.001
-              if (!hasRemaining && !isEditing) return null
               return (
                 <option key={h.id} value={h.id}>
                   {formatBatchOptionLabel(h, batchInventory.availableKg)}
@@ -477,11 +453,7 @@ export function IncomeForm({
         </FormSection>
       )}
 
-      {!isEditing && harvests.length > 0 && harvests.every((h) => getHarvestInventory(h, linkedSales, initialData?.id).availableKg <= 0.001) && (
-        <ComputedHint>No harvest batches with stock left. Log a new harvest first.</ComputedHint>
-      )}
-
-      {!isEditing && harvests.some((h) => getHarvestInventory(h, linkedSales, initialData?.id).availableKg > 0.001) && (
+      {!isEditing && (
         <ComputedHint>
           Enter whole bags and loose kilos together — one Save sale records both parts.
         </ComputedHint>
@@ -501,12 +473,6 @@ export function IncomeForm({
                 onChange={(e) => setFormData({ ...formData, num_red_bags: e.target.value })}
                 className="field-input"
               />
-              {inventory && (
-                <ComputedHint>
-                  Up to {inventory.maxWholeBags} whole {inventory.maxWholeBags === 1 ? 'bag' : 'bags'} (
-                  {formatWeight(inventory.maxWholeBags * RED_BAG_KG)})
-                </ComputedHint>
-              )}
             </div>
             <div>
               <label className="field-label">Price / bag (₱)</label>
@@ -540,17 +506,11 @@ export function IncomeForm({
                 type="number"
                 step="0.01"
                 min="0"
-                max={inventory ? Math.max(looseKgAvailable, 0) : undefined}
                 placeholder="0"
                 value={formData.loose_kg}
                 onChange={(e) => setFormData({ ...formData, loose_kg: e.target.value })}
                 className="field-input"
               />
-              {inventory && looseKgAvailable > 0 && (
-                <ComputedHint>
-                  Max {formatWeight(looseKgAvailable)} loose · {formatRedBagTotal(looseKgAvailable)}
-                </ComputedHint>
-              )}
               {kgSale.kgSold > 0 && (
                 <ComputedHint>≈ {formatRedBagTotal(kgSale.kgSold)} at {RED_BAG_KG} kg/bag</ComputedHint>
               )}
