@@ -6,6 +6,7 @@ import { ExpenseBreakdown } from '../components/charts/ExpenseBreakdown'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { DataTable } from '../components/ui/DataTable'
 import { PageHeader } from '../components/ui/PageHeader'
+import { PageActions } from '../components/ui/PageActions'
 import { Panel } from '../components/ui/Panel'
 import { Button } from '../components/ui/Button'
 import { QueryError } from '../components/ui/QueryError'
@@ -154,18 +155,19 @@ export function Reports() {
       <PageHeader
         eyebrow="Financial Intelligence"
         title="Reports & Ledger"
-        description="Full profit and loss analysis with downloadable transaction audit records."
         actions={
           <>
             <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />
-            <Button variant="secondary" onClick={() => exportReportCSV(incomeData, expenseData)} disabled={combinedTransactions.length === 0}>
-              <Download size={15} />
-              Export CSV
-            </Button>
-            <Button onClick={() => exportReportPDF({ incomeData, expenseData })} disabled={combinedTransactions.length === 0}>
-              <FileText size={15} />
-              Export PDF
-            </Button>
+            <PageActions>
+              <Button variant="secondary" onClick={() => exportReportCSV(incomeData, expenseData)} disabled={combinedTransactions.length === 0}>
+                <Download size={15} />
+                <span className="hidden sm:inline">CSV</span>
+              </Button>
+              <Button onClick={() => exportReportPDF({ incomeData, expenseData })} disabled={combinedTransactions.length === 0}>
+                <FileText size={15} />
+                <span className="hidden sm:inline">PDF</span>
+              </Button>
+            </PageActions>
           </>
         }
       />

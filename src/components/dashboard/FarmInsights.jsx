@@ -22,9 +22,9 @@ export function FarmInsights({
   lowStock,
 }) {
   return (
-    <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-2">
       <Panel title="Inventory overview" description="Harvested vs sold across all batches">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Harvested</p>
             <p className="mt-1 font-display text-lg font-semibold text-white">{formatBags(inventory.totalHarvestBags)}</p>

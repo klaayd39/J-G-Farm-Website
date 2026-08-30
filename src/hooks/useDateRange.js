@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { startOfMonth, endOfMonth, subDays, startOfYear, endOfYear, format } from 'date-fns'
 
 const PRESETS = {
@@ -6,7 +6,6 @@ const PRESETS = {
   last30: 'Last 30 Days',
   thisYear: 'This Year',
   allTime: 'All Time',
-  custom: 'Custom Range',
 }
 
 function getPresetRange(preset) {
@@ -25,17 +24,27 @@ function getPresetRange(preset) {
   }
 }
 
-export function useDateRange(initialPreset = 'thisMonth') {
-  const [preset, setPreset] = useState(initialPreset)
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
+function detectPreset(from, to) {
+  for (const key of Object.keys(PRESETS)) {
+    const presetRange = getPresetRange(key)
+    if (presetRange.from === from && presetRange.to === to) return key
+  }
+  return null
+}
 
-  const range = useMemo(() => {
-    if (preset === 'custom') {
-      return { from: customFrom, to: customTo }
-    }
-    return getPresetRange(preset)
-  }, [preset, customFrom, customTo])
+export function useDateRange(initialPreset = 'thisMonth') {
+  const initialRange = getPresetRange(initialPreset)
+  const [dateFrom, setDateFrom] = useState(initialRange.from)
+  const [dateTo, setDateTo] = useState(initialRange.to)
+
+  const setPresetRange = useCallback((key) => {
+    const range = getPresetRange(key)
+    setDateFrom(range.from)
+    setDateTo(range.to)
+  }, [])
+
+  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo])
+  const range = useMemo(() => ({ from: dateFrom, to: dateTo }), [dateFrom, dateTo])
 
   const filters = useMemo(() => {
     const f = []
@@ -45,12 +54,12 @@ export function useDateRange(initialPreset = 'thisMonth') {
   }, [range])
 
   return {
-    preset,
-    setPreset,
-    customFrom,
-    setCustomFrom,
-    customTo,
-    setCustomTo,
+    preset: activePreset,
+    setPreset: setPresetRange,
+    customFrom: dateFrom,
+    setCustomFrom: setDateFrom,
+    customTo: dateTo,
+    setCustomTo: setDateTo,
     range,
     filters,
     PRESETS,

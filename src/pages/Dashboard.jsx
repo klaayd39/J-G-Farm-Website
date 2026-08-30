@@ -118,11 +118,10 @@ export function Dashboard() {
   }, [incomeData, expenseData])
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5 sm:space-y-6">
       <PageHeader
         eyebrow="Executive Dashboard"
         title={`Welcome back, ${firstName}`}
-        description="Comprehensive summary of harvest yield, buyer revenue, operating costs, and profit."
         actions={
           <DateRangeFilter
             preset={preset}
@@ -151,7 +150,7 @@ export function Dashboard() {
         <LoadingSpinner text="Computing orchard figures…" />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             <Card title="Harvest Picked" value={formatWeight(totalHarvestKg)} subtitle={`${harvestData.length} picking batches`} icon={Trees} color="blue" />
             <Card title="Field Expenses" value={formatCurrency(totalExpense)} subtitle={`${expenseData.length} recorded items`} icon={Receipt} color="red" />
             <Card title="Gross Revenue" value={formatCurrency(totalIncome)} subtitle={`${incomeData.length} buyer sales`} icon={TrendingUp} color="emerald" />
@@ -166,7 +165,7 @@ export function Dashboard() {
 
           <FarmInsights inventory={inventory} buyers={buyers} seasonal={seasonal} labor={labor} lowStock={lowStock} />
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
             <Panel className="lg:col-span-2" title="Cash Flow & Operating Trends" description="Monthly comparison between calamansi sales and farm upkeep">
               <IncomeExpenseChart data={monthlyChartData} />
             </Panel>
@@ -175,7 +174,7 @@ export function Dashboard() {
             </Panel>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
             <Panel
               className="lg:col-span-2"
               title="Recent Farm Activity"
