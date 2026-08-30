@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO, formatCurrency, formatWeight } from '../../utils/formatters'
+import { todayISO, formatCurrency, formatWeight, formatDate, formatTime, formatUserLabel, nowTimeHHMM } from '../../utils/formatters'
 import {
   RED_BAG_KG,
   calcBagSale,
@@ -74,14 +74,30 @@ function inventoryItems(inventory, pendingKg) {
   return items
 }
 
+function parseTimeInput(timeStr) {
+  if (!timeStr) return ''
+  const parts = String(timeStr).split(':')
+  if (parts.length < 2) return ''
+  return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`
+}
+
+function formatBatchOptionLabel(harvest, availableKg) {
+  const dateLabel = formatDate(harvest.date)
+  if (availableKg <= 0.001) {
+    return `${dateLabel} · sold out`
+  }
+  return `${dateLabel} · ${formatWeight(availableKg)} available`
+}
+
 export function IncomeForm({
   initialData = null,
   harvests = [],
   linkedSales = [],
+  profileMap = {},
   onSuccess,
   onCancel,
 }) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [loading, setLoading] = useState(false)
   const isEditing = Boolean(initialData?.id)
   const editingKgOnly = isEditing && isKgOnlySale(initialData)
@@ -90,6 +106,7 @@ export function IncomeForm({
 
   const [formData, setFormData] = useState({
     date: initialData?.date || todayISO(),
+    sale_time: initialData?.sale_time ? parseTimeInput(initialData.sale_time) : nowTimeHHMM(),
     buyer: initialData?.buyer || '',
     num_red_bags: editingBagOnly || editingCombined ? initialData.num_red_bags : '',
     price_per_red_bag: editingBagOnly || editingCombined ? initialData.price_per_red_bag : '',
@@ -158,7 +175,7 @@ export function IncomeForm({
   }
 
   async function saveRecord(payload) {
-    const optionalKeys = ['num_red_bags', 'price_per_red_bag', 'loose_kg_sold']
+    const optionalKeys = ['num_red_bags', 'price_per_red_bag', 'loose_kg_sold', 'sale_time']
     let attempt = { ...payload }
 
     for (let tries = 0; tries <= optionalKeys.length; tries += 1) {
@@ -246,6 +263,7 @@ export function IncomeForm({
       const shared = {
         user_id: user.id,
         date: formData.date,
+        sale_time: formData.sale_time ? `${formData.sale_time}:00` : null,
         buyer: formData.buyer.trim(),
         harvest_id: formData.harvest_id || null,
         notes: formData.notes.trim(),
@@ -374,11 +392,11 @@ export function IncomeForm({
   const showKgSection = !isEditing || editingKgOnly || editingCombined
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-1">
       <FormSection>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="field-label">Date</label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="min-w-0">
+            <label className="field-label">Sale date</label>
             <input
               type="date"
               required
@@ -387,46 +405,73 @@ export function IncomeForm({
               className="field-input"
             />
           </div>
-          <div>
-            <label className="field-label">Buyer</label>
+          <div className="min-w-0">
+            <label className="field-label">Sale time</label>
             <input
-              type="text"
+              type="time"
               required
-              placeholder="Market or buyer name"
-              value={formData.buyer}
-              onChange={(e) => setFormData({ ...formData, buyer: e.target.value })}
+              value={formData.sale_time}
+              onChange={(e) => setFormData({ ...formData, sale_time: e.target.value })}
               className="field-input"
             />
           </div>
         </div>
+        <div className="mt-3">
+          <label className="field-label">Buyer</label>
+          <input
+            type="text"
+            required
+            placeholder="Market or buyer name"
+            value={formData.buyer}
+            onChange={(e) => setFormData({ ...formData, buyer: e.target.value })}
+            className="field-input"
+          />
+        </div>
+        {!isEditing && profile && (
+          <p className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[11px] text-slate-500">
+            Will be logged by <span className="font-medium text-slate-300">{formatUserLabel(profile)}</span>
+          </p>
+        )}
+        {isEditing && initialData?.created_at && (
+          <p className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[11px] text-slate-500">
+            Logged {formatDateTime(initialData.created_at)} by{' '}
+            <span className="font-medium text-slate-300">{formatUserLabel(profileMap[initialData.user_id])}</span>
+          </p>
+        )}
       </FormSection>
 
       {harvests.length > 0 && (
-        <FormSection title="Harvest batch">
+        <FormSection title="Harvest batch" description="Choose which picking batch this sale comes from">
           <select
             required
             value={formData.harvest_id}
             onChange={(e) => handleHarvestChange(e.target.value)}
             className="field-input"
           >
-            <option value="">Select batch</option>
+            <option value="">Choose a batch…</option>
             {harvests.map((h) => {
               const batchInventory = getHarvestInventory(h, linkedSales, initialData?.id)
               const hasRemaining = batchInventory.availableKg > 0.001
               if (!hasRemaining && !isEditing) return null
               return (
                 <option key={h.id} value={h.id}>
-                  {h.date} — {formatHarvestRedBags(h)} ({formatWeight(getHarvestKg(h))})
-                  {hasRemaining
-                    ? ` · ${formatRedBagTotal(batchInventory.availableKg)} left (${formatWeight(batchInventory.availableKg)})`
-                    : ''}
+                  {formatBatchOptionLabel(h, batchInventory.availableKg)}
                 </option>
               )
             })}
           </select>
+          {selectedHarvest && inventory && (
+            <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+              Picked <span className="text-slate-300">{formatDate(selectedHarvest.date)}</span>
+              {' · '}
+              {formatHarvestRedBags(selectedHarvest)} harvested
+              {' · '}
+              <span className="text-[#d7ffe0]/80">{formatWeight(inventory.availableKg)} left</span>
+            </p>
+          )}
           {inventory && (
             <div className="mt-3">
-              <InventorySummary items={inventoryItems(inventory, pendingKg)} />
+              <InventorySummary compact items={inventoryItems(inventory, pendingKg)} />
             </div>
           )}
         </FormSection>

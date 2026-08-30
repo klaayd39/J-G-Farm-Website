@@ -86,7 +86,22 @@ textarea {
 
 dialog {
   margin: auto;
+  padding: 0;
   animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+input[type='date'].field-input,
+input[type='time'].field-input {
+  min-height: 40px;
+  appearance: none;
+  line-height: 1.25;
+}
+
+input[type='date'].field-input::-webkit-calendar-picker-indicator,
+input[type='time'].field-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  filter: invert(1);
 }
 
 dialog::backdrop {

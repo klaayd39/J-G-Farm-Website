@@ -1,4 +1,5 @@
-import { formatDate, CATEGORY_LABELS } from './formatters'
+import { formatDate, formatTime, formatDateTime, formatUserLabel, CATEGORY_LABELS } from './formatters'
+import { formatHarvestRedBags } from './farmUnits'
 import { formatIncomeExportDetails } from './farmAnalytics'
 
 /**
@@ -41,15 +42,22 @@ function downloadCSV(csvString, filename) {
 /**
  * Export income data to CSV
  */
-export function exportIncomeCSV(data) {
+export function exportIncomeCSV(data, { profileMap = {}, harvestMap = {} } = {}) {
   const columns = [
-    { label: 'Date', accessor: (r) => formatDate(r.date) },
+    { label: 'Sale Date', accessor: (r) => formatDate(r.date) },
+    { label: 'Sale Time', accessor: (r) => (r.sale_time ? formatTime(r.sale_time) : '') },
+    { label: 'Batch Picked', accessor: (r) => {
+      const harvest = harvestMap[r.harvest_id]
+      return harvest ? `${formatDate(harvest.date)} · ${formatHarvestRedBags(harvest)}` : ''
+    }},
     { label: 'Buyer/Market', accessor: (r) => r.buyer },
     { label: 'Number of Red Bags', accessor: (r) => r.num_red_bags || '-' },
     { label: 'Price Per Red Bag (₱)', accessor: (r) => r.price_per_red_bag || '-' },
     { label: 'Kg Sold', accessor: (r) => r.kg_sold || '-' },
     { label: 'Price per Kg (₱)', accessor: (r) => r.price_per_kg || '-' },
     { label: 'Total Amount (₱)', accessor: (r) => r.total_amount },
+    { label: 'Logged At', accessor: (r) => formatDateTime(r.created_at) },
+    { label: 'Logged By', accessor: (r) => formatUserLabel(profileMap[r.user_id]) },
     { label: 'Notes', accessor: (r) => r.notes },
   ]
   downloadCSV(toCSV(data, columns), `jg-farm-income-${new Date().toISOString().split('T')[0]}.csv`)

@@ -35,6 +35,10 @@ CREATE POLICY "Users can view own profile"
   ON profiles FOR SELECT
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Farm team can view all profiles" ON profiles;
+CREATE POLICY "Farm team can view all profiles"
+  ON profiles FOR SELECT TO authenticated USING (true);
+
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
@@ -121,6 +125,7 @@ CREATE TABLE IF NOT EXISTS income (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
+  sale_time TIME,
   buyer TEXT NOT NULL DEFAULT '',
   kg_sold NUMERIC(10,2) DEFAULT 0,
   price_per_kg NUMERIC(10,2) DEFAULT 0,

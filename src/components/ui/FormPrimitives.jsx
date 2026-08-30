@@ -53,19 +53,26 @@ export function SegmentedControl({ value, onChange, options, className = '' }) {
   )
 }
 
-export function InventorySummary({ items }) {
-  const cols = items.length >= 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
+export function InventorySummary({ items, compact = false }) {
+  const cols =
+    items.length >= 4
+      ? compact
+        ? 'grid-cols-2'
+        : 'grid-cols-2 lg:grid-cols-4'
+      : items.length === 3
+        ? 'grid-cols-3'
+        : 'grid-cols-2'
   return (
     <div className={`grid ${cols} gap-px overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.06]`}>
       {items.map((item) => (
-        <div key={item.label} className="bg-[#0a0a0a] px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+        <div key={item.label} className="min-w-0 bg-[#0a0a0a] px-2.5 py-2 sm:px-3 sm:py-2.5">
+          <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">
             {item.label}
           </p>
-          <p className={cn('mt-0.5 text-sm font-medium tabular-nums', item.tone || 'text-slate-200')}>
+          <p className={cn('mt-0.5 truncate text-sm font-medium tabular-nums', item.tone || 'text-slate-200')}>
             {item.value}
           </p>
-          {item.sub && <p className="mt-0.5 text-[10px] text-slate-500">{item.sub}</p>}
+          {item.sub && <p className="mt-0.5 truncate text-[10px] text-slate-500">{item.sub}</p>}
         </div>
       ))}
     </div>
@@ -95,7 +102,12 @@ export function FormTotal({ label, amount, lines = [] }) {
 
 export function FormActions({ children, className = '' }) {
   return (
-    <div className={cn('flex items-center justify-end gap-2 border-t border-white/[0.06] pt-4', className)}>
+    <div
+      className={cn(
+        'sticky bottom-0 -mx-4 flex items-center justify-end gap-2 border-t border-white/[0.06] bg-[#0a0a0a]/95 px-4 py-3 backdrop-blur-sm sm:-mx-5 sm:px-5 sm:py-4',
+        className
+      )}
+    >
       {children}
     </div>
   )

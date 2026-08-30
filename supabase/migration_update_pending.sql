@@ -123,3 +123,10 @@ CREATE TRIGGER check_harvest_sale_inventory
 
 -- Done. Refresh Supabase schema cache: Settings → API → Reload schema (if available)
 -- or wait ~1 minute for PostgREST to pick up column changes.
+
+-- 6. Sale time on income + shared profile names for "logged by"
+ALTER TABLE income ADD COLUMN IF NOT EXISTS sale_time TIME;
+
+DROP POLICY IF EXISTS "Farm team can view all profiles" ON profiles;
+CREATE POLICY "Farm team can view all profiles"
+  ON profiles FOR SELECT TO authenticated USING (true);

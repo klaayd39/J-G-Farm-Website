@@ -91,7 +91,7 @@ export function DataTable({
                 {columns.map((col, idx) => (
                   <th
                     key={idx}
-                    className={`whitespace-nowrap px-4 py-3.5 ${col.sortable ? 'cursor-pointer select-none transition-colors hover:text-emerald-300' : ''} ${col.className || ''}`}
+                    className={`px-3 py-3 align-middle sm:px-4 sm:py-3.5 ${col.sortable ? 'cursor-pointer select-none transition-colors hover:text-emerald-300' : ''} ${col.className || ''}`}
                     onClick={() => col.sortable && handleSort(col.accessorKey)}
                   >
                     <div className="flex items-center gap-1.5">
@@ -121,9 +121,12 @@ export function DataTable({
                 </tr>
               ) : (
                 paginatedData.map((row, rowIdx) => (
-                  <tr key={row.id || rowIdx} className="transition-colors hover:bg-white/[0.035]">
+                  <tr key={row.id || rowIdx} className="group transition-colors hover:bg-white/[0.035]">
                     {columns.map((col, colIdx) => (
-                      <td key={colIdx} className={`px-4 py-3.5 ${col.className || ''}`}>
+                      <td
+                        key={colIdx}
+                        className={`px-3 py-3 sm:px-4 sm:py-3.5 ${col.className || ''} ${col.className?.includes('sticky') ? 'group-hover:bg-[#0c0c0c]/95' : ''}`}
+                      >
                         {col.cell ? col.cell(row) : row[col.accessorKey]}
                       </td>
                     ))}

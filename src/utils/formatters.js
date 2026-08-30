@@ -77,3 +77,45 @@ export const CATEGORY_COLORS = {
 export function todayISO() {
   return new Date().toISOString().split('T')[0]
 }
+
+/** Current local time as HH:MM for time inputs */
+export function nowTimeHHMM() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** Format TIME or HH:MM string for display */
+export function formatTime(timeStr) {
+  if (!timeStr) return ''
+  const parts = String(timeStr).split(':')
+  const hours = Number(parts[0])
+  const minutes = Number(parts[1] || 0)
+  if (Number.isNaN(hours)) return ''
+  const date = new Date()
+  date.setHours(hours, minutes, 0, 0)
+  return new Intl.DateTimeFormat('en-PH', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
+/** Format ISO timestamp for ledger display */
+export function formatDateTime(isoStr) {
+  if (!isoStr) return ''
+  const date = new Date(isoStr)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
+export function formatUserLabel(profile) {
+  if (!profile) return 'Unknown'
+  const name = profile.full_name?.trim()
+  if (name) return name
+  return profile.email?.split('@')[0] || 'Unknown'
+}
