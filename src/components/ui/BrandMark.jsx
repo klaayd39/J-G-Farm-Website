@@ -1,7 +1,7 @@
 export function BrandMark({ size = 40, className = '' }) {
   return (
     <img
-      src="/logo.jpg"
+      src="/logo.png"
       alt=""
       width={size}
       height={size}
