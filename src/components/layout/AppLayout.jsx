@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { MobileNav } from './MobileNav'
 import { BrandMark } from '../ui/BrandMark'
+import { SwitchModuleLink } from '../ui/SwitchModuleLink'
 
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -39,18 +40,21 @@ export function AppLayout() {
 
       <div className="relative flex min-w-0 flex-1 flex-col md:pl-64">
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#d7ffe0]/10 bg-[#050505]/85 px-4 backdrop-blur-md md:hidden">
-          <div className="flex items-center gap-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
             <BrandMark size={28} />
-            <span className="font-display text-base font-medium text-white">J&amp;G Farm</span>
+            <span className="truncate font-display text-base font-medium text-white">J&amp;G Farm</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
-            aria-label="Open menu"
-          >
-            <Menu size={20} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <SwitchModuleLink compact />
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
+              aria-label="Open menu"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 px-3 py-5 pb-24 sm:px-5 sm:py-6 md:px-8 md:py-8 md:pb-10">

@@ -3,6 +3,9 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
+import { ModuleSelect } from './pages/ModuleSelect'
+import { Juice } from './pages/Juice'
+import { Silage } from './pages/Silage'
 import { Dashboard } from './pages/Dashboard'
 import { Income } from './pages/Income'
 import { Expenses } from './pages/Expenses'
@@ -10,6 +13,7 @@ import { Harvests } from './pages/Harvests'
 import { Reports } from './pages/Reports'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { MODULE_SELECT_PATH } from './constants/modules'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -41,7 +45,7 @@ function PublicRoute({ children }) {
   }
 
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to={MODULE_SELECT_PATH} replace />
   }
 
   return children
@@ -78,6 +82,30 @@ export function App() {
           }
         />
         <Route
+          path={MODULE_SELECT_PATH}
+          element={
+            <ProtectedRoute>
+              <ModuleSelect />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/juice"
+          element={
+            <ProtectedRoute>
+              <Juice />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/silage"
+          element={
+            <ProtectedRoute>
+              <Silage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/"
           element={
             <ProtectedRoute>
@@ -93,7 +121,7 @@ export function App() {
           <Route path="income" element={<Income />} />
           <Route path="reports" element={<Reports />} />
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={MODULE_SELECT_PATH} replace />} />
       </Routes>
     </AuthProvider>
   )

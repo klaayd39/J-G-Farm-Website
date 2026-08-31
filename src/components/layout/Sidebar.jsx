@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { NAV_ITEMS } from '../../nav'
 import { BrandMark } from '../ui/BrandMark'
+import { SwitchModuleLink } from '../ui/SwitchModuleLink'
 
 export function Sidebar({ onClose }) {
   const { user, profile, signOut } = useAuth()
@@ -16,6 +17,10 @@ export function Sidebar({ onClose }) {
         <div className="min-w-0">
           <p className="truncate font-display text-[1.05rem] font-semibold leading-tight tracking-tight text-white">J&amp;G Farm</p>
         </div>
+      </div>
+
+      <div className="mb-3 px-1">
+        <SwitchModuleLink onClick={onClose} />
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto no-scrollbar">

@@ -5,6 +5,7 @@ import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck, Sprout, BarChart3, Ph
 import toast from 'react-hot-toast'
 import { BrandMark } from '../components/ui/BrandMark'
 import { Button } from '../components/ui/Button'
+import { MODULE_SELECT_PATH } from '../constants/modules'
 import heroImage from '../assets/hero.png'
 
 export function Login() {
@@ -23,7 +24,7 @@ export function Login() {
     try {
       await signIn(email, password)
       toast.success('Welcome back to J&G Farm!')
-      navigate('/')
+      navigate(MODULE_SELECT_PATH)
     } catch (err) {
       toast.error(err.message || 'Authentication failed. Please check your credentials.')
     } finally {
