@@ -84,8 +84,8 @@ export function DataTable({
       )}
 
       <div className="overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/80 shadow-xl backdrop-blur-md">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-200">
+        <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+          <table className="w-full min-w-[640px] text-left text-sm text-slate-200">
             <thead className="border-b border-white/8 bg-black/30 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
               <tr>
                 {columns.map((col, idx) => (
@@ -139,13 +139,13 @@ export function DataTable({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-1 text-xs text-slate-400">
-          <span>
+        <div className="flex flex-col gap-3 px-1 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-center sm:text-left">
             Showing <strong className="font-semibold text-slate-200">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
             <strong className="font-semibold text-slate-200">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{' '}
             <strong className="font-semibold text-slate-200">{sortedData.length}</strong>
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-center gap-1.5 sm:justify-end">
             <button
               type="button"
               disabled={currentPage === 1}

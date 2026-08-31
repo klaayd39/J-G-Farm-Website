@@ -5,7 +5,7 @@ import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageActions } from '../components/ui/PageActions'
+import { PageToolbar } from '../components/ui/PageToolbar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
@@ -249,21 +249,23 @@ export function Income() {
         eyebrow="Commercial Sales"
         title="Income Ledger"
         actions={
-          <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-start xl:justify-end">
-            <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} className="xl:flex-1" />
-            <PageActions>
-              {incomeData.length > 0 && (
-                <Button variant="secondary" onClick={() => exportIncomeCSV(incomeData, { profileMap, harvestMap })}>
-                  <Download size={15} />
-                  <span className="hidden sm:inline">Export CSV</span>
+          <PageToolbar
+            filter={<DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />}
+            actions={
+              <>
+                {incomeData.length > 0 && (
+                  <Button variant="secondary" onClick={() => exportIncomeCSV(incomeData, { profileMap, harvestMap })}>
+                    <Download size={15} />
+                    <span className="hidden sm:inline">Export CSV</span>
+                  </Button>
+                )}
+                <Button onClick={() => { setEditingItem(null); setModalOpen(true) }}>
+                  <Plus size={16} />
+                  Record Sale
                 </Button>
-              )}
-              <Button onClick={() => { setEditingItem(null); setModalOpen(true) }}>
-                <Plus size={16} />
-                Record Sale
-              </Button>
-            </PageActions>
-          </div>
+              </>
+            }
+          />
         }
       />
 

@@ -29,7 +29,7 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
       onClick={handleBackdropClick}
       className={cn(
         maxWidth,
-        'm-auto max-h-[min(90vh,720px)] w-[calc(100%-1rem)] flex-col overflow-hidden rounded-xl border border-[#d7ffe0]/10 bg-[#0a0a0a] p-0 text-[#d7ffe0] shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
+        'm-auto max-h-[min(90dvh,720px)] w-[calc(100%-0.75rem)] flex-col overflow-hidden rounded-xl border border-[#d7ffe0]/10 bg-[#0a0a0a] p-0 text-[#d7ffe0] shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
         open ? 'flex' : 'hidden'
       )}
     >

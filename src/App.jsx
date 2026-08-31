@@ -4,7 +4,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
-import { Juice } from './pages/Juice'
+import { JuiceLayout } from './components/layout/JuiceLayout'
+import { JuiceHarvests } from './pages/juice/JuiceHarvests'
+import { JuiceIncome } from './pages/juice/JuiceIncome'
 import { SilageLayout } from './components/layout/SilageLayout'
 import { SilageHarvests } from './pages/silage/SilageHarvests'
 import { SilageIncome } from './pages/silage/SilageIncome'
@@ -57,7 +59,8 @@ export function App() {
   return (
     <AuthProvider>
       <Toaster
-        position="top-right"
+        position="top-center"
+        containerClassName="!top-[max(0.75rem,env(safe-area-inset-top))] sm:!top-4"
         toastOptions={{
           style: {
             background: '#0a0a0a',
@@ -95,10 +98,16 @@ export function App() {
           path="/juice"
           element={
             <ProtectedRoute>
-              <Juice />
+              <ErrorBoundary>
+                <JuiceLayout />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="harvests" replace />} />
+          <Route path="harvests" element={<JuiceHarvests />} />
+          <Route path="income" element={<JuiceIncome />} />
+        </Route>
         <Route
           path="/silage"
           element={

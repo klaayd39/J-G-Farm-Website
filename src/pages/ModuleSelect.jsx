@@ -32,7 +32,7 @@ export function ModuleSelect() {
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'there'
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#050505] text-[#d7ffe0] antialiased">
+    <div className="relative flex min-h-screen flex-col bg-[#050505] text-[#d7ffe0] antialiased safe-top">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(215,255,224,0.08),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(215,255,224,0.05),transparent_45%)]" />
 
       <header className="relative z-10 flex items-center justify-between px-4 py-5 sm:px-8 sm:py-6">
@@ -53,7 +53,7 @@ export function ModuleSelect() {
         </button>
       </header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 pb-12 sm:px-8">
+      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 pb-[max(3rem,env(safe-area-inset-bottom))] sm:px-8">
         <div className="mb-8 text-center sm:mb-10">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#d7ffe0]/15 bg-[#d7ffe0]/5 px-3 py-1 text-[11px] font-semibold text-[#d7ffe0]/90">
             <Sparkles size={13} />

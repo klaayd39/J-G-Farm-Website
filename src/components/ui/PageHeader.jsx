@@ -15,7 +15,7 @@ export function PageHeader({ eyebrow, title, description, actions }) {
         )}
       </div>
       {actions && (
-        <div className="flex w-full shrink-0 flex-col gap-3 lg:w-auto lg:min-w-[18rem] xl:min-w-[22rem]">
+        <div className="w-full min-w-0 shrink-0 lg:w-auto lg:min-w-[18rem] xl:min-w-[22rem]">
           {actions}
         </div>
       )}

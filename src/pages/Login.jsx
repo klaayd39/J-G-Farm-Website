@@ -33,7 +33,7 @@ export function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2 bg-[#050505]">
+    <div className="grid min-h-screen lg:grid-cols-2 bg-[#050505] safe-top">
       <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between p-12">
         <img
           src={heroImage}

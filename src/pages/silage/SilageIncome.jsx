@@ -5,7 +5,7 @@ import { Modal } from '../../components/ui/Modal'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { PageHeader } from '../../components/ui/PageHeader'
-import { PageActions } from '../../components/ui/PageActions'
+import { PageToolbar } from '../../components/ui/PageToolbar'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -181,17 +181,19 @@ export function SilageIncome() {
         eyebrow="Super Napier Silage"
         title="Income Ledger"
         actions={
-          <>
-            <DateRangeFilter
-              preset={preset}
-              setPreset={setPreset}
-              customFrom={customFrom}
-              setCustomFrom={setCustomFrom}
-              customTo={customTo}
-              setCustomTo={setCustomTo}
-              presets={PRESETS}
-            />
-            <PageActions>
+          <PageToolbar
+            filter={
+              <DateRangeFilter
+                preset={preset}
+                setPreset={setPreset}
+                customFrom={customFrom}
+                setCustomFrom={setCustomFrom}
+                customTo={customTo}
+                setCustomTo={setCustomTo}
+                presets={PRESETS}
+              />
+            }
+            actions={
               <Button
                 onClick={() => {
                   setEditingItem(null)
@@ -201,8 +203,8 @@ export function SilageIncome() {
                 <Plus size={16} />
                 Record Sale
               </Button>
-            </PageActions>
-          </>
+            }
+          />
         }
       />
 

@@ -192,3 +192,17 @@ dialog::backdrop {
   border: 1px solid rgba(215, 255, 224, 0.08);
   box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(215, 255, 224, 0.05);
 }
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.main-with-mobile-nav {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .main-with-mobile-nav {
+    padding-bottom: 2.5rem;
+  }
+}

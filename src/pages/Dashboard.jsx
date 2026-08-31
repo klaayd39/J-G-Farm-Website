@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card'
 import { Panel } from '../components/ui/Panel'
 import { PageHeader } from '../components/ui/PageHeader'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
+import { PageToolbar } from '../components/ui/PageToolbar'
 import { IncomeExpenseChart } from '../components/charts/IncomeExpenseChart'
 import { ExpenseBreakdown } from '../components/charts/ExpenseBreakdown'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -124,14 +125,18 @@ export function Dashboard() {
         eyebrow="Executive Dashboard"
         title={`Welcome back, ${firstName}`}
         actions={
-          <DateRangeFilter
-            preset={preset}
-            setPreset={setPreset}
-            customFrom={customFrom}
-            setCustomFrom={setCustomFrom}
-            customTo={customTo}
-            setCustomTo={setCustomTo}
-            presets={PRESETS}
+          <PageToolbar
+            filter={
+              <DateRangeFilter
+                preset={preset}
+                setPreset={setPreset}
+                customFrom={customFrom}
+                setCustomFrom={setCustomFrom}
+                customTo={customTo}
+                setCustomTo={setCustomTo}
+                presets={PRESETS}
+              />
+            }
           />
         }
       />

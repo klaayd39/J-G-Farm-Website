@@ -5,7 +5,7 @@ import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageActions } from '../components/ui/PageActions'
+import { PageToolbar } from '../components/ui/PageToolbar'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { ReceiptLink } from '../components/ui/ReceiptLink'
@@ -162,26 +162,28 @@ export function Expenses() {
         eyebrow="Farm Expenditures"
         title="Field Expenses"
         actions={
-          <>
-            <DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />
-            <PageActions>
-              {rawExpenseData.length > 0 && (
-                <Button variant="secondary" onClick={() => exportExpensesCSV(expenseData)}>
-                  <Download size={15} />
-                  <span className="hidden sm:inline">Export CSV</span>
+          <PageToolbar
+            filter={<DateRangeFilter preset={preset} setPreset={setPreset} customFrom={customFrom} setCustomFrom={setCustomFrom} customTo={customTo} setCustomTo={setCustomTo} presets={PRESETS} />}
+            actions={
+              <>
+                {rawExpenseData.length > 0 && (
+                  <Button variant="secondary" onClick={() => exportExpensesCSV(expenseData)}>
+                    <Download size={15} />
+                    <span className="hidden sm:inline">Export CSV</span>
+                  </Button>
+                )}
+                <Button
+                  onClick={() => {
+                    setEditingItem(null)
+                    setModalOpen(true)
+                  }}
+                >
+                  <Plus size={16} />
+                  Log Expense
                 </Button>
-              )}
-              <Button
-                onClick={() => {
-                  setEditingItem(null)
-                  setModalOpen(true)
-                }}
-              >
-                <Plus size={16} />
-                Log Expense
-              </Button>
-            </PageActions>
-          </>
+              </>
+            }
+          />
         }
       />
 
