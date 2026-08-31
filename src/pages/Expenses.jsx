@@ -189,7 +189,7 @@ export function Expenses() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-3.5 sm:p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl surface-panel p-3.5 sm:p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 overflow-x-auto pb-1 sm:pb-0 min-w-0">
           <div className="flex shrink-0 items-center gap-1 text-slate-400 pr-1">
             <Filter size={14} className="text-emerald-400" />
@@ -200,9 +200,7 @@ export function Expenses() {
               type="button"
               onClick={() => setSelectedCategory('all')}
               className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                selectedCategory === 'all' ? 'pill-active' : 'pill-inactive'
               }`}
             >
               All Types
@@ -213,9 +211,7 @@ export function Expenses() {
                 type="button"
                 onClick={() => setSelectedCategory(catKey)}
                 className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
-                  selectedCategory === catKey
-                    ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                  selectedCategory === catKey ? 'pill-active' : 'pill-inactive'
                 }`}
               >
                 {catLabel}
@@ -223,8 +219,8 @@ export function Expenses() {
             ))}
           </div>
         </div>
-        <div className="flex items-center justify-between sm:flex-col sm:items-end shrink-0 border-t border-white/6 pt-2.5 sm:border-0 sm:pt-0">
-          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Category Total</p>
+        <div className="flex items-center justify-between sm:flex-col sm:items-end shrink-0 border-t border-app pt-2.5 sm:border-0 sm:pt-0">
+          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-app-secondary">Category Total</p>
           <p className="font-display text-lg sm:text-xl font-semibold text-rose-300">{formatCurrency(totalExpenses)}</p>
         </div>
       </div>

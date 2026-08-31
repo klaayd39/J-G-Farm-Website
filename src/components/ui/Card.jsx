@@ -28,15 +28,15 @@ export function Card({ title, value, subtitle, icon: Icon, color = 'emerald' }) 
     <div className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-app bg-app-surface p-3.5 transition-colors hover:border-app-strong sm:rounded-2xl sm:p-5">
       <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br ${selected.glow} opacity-40 blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-2">
-        <p className="min-w-0 truncate text-[10px] font-medium uppercase tracking-wider text-slate-500 sm:text-[11px]">{title}</p>
+        <p className="min-w-0 truncate text-[10px] font-medium uppercase tracking-wider text-app-muted sm:text-[11px]">{title}</p>
         {Icon && (
           <div className={`shrink-0 rounded-lg p-1.5 sm:p-2 ${selected.badge}`}>
             <Icon size={14} strokeWidth={2} className="sm:h-[15px] sm:w-[15px]" />
           </div>
         )}
       </div>
-      <p className={`relative z-10 mt-1.5 truncate font-display text-lg font-semibold tracking-tight tabular-nums sm:mt-2 sm:text-xl lg:text-2xl ${selected.text || 'text-white'}`}>{value}</p>
-      {subtitle && <p className="relative z-10 mt-0.5 truncate text-[10px] text-slate-500 sm:mt-1 sm:text-[11px]">{subtitle}</p>}
+      <p className={`relative z-10 mt-1.5 truncate font-display text-lg font-semibold tracking-tight tabular-nums sm:mt-2 sm:text-xl lg:text-2xl ${selected.text || 'text-app-primary'}`}>{value}</p>
+      {subtitle && <p className="relative z-10 mt-0.5 truncate text-[10px] text-app-muted sm:mt-1 sm:text-[11px]">{subtitle}</p>}
     </div>
   )
 }

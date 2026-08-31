@@ -5,10 +5,10 @@ function ExpenseBreakdownTooltip({ active, payload }) {
   if (active && payload && payload.length) {
     const item = payload[0].payload
     return (
-      <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{item.name}</p>
-        <p className="mt-1 text-base font-bold text-white">{formatCurrency(item.value)}</p>
-        <p className="text-xs font-medium text-emerald-400">{item.percentage}% of total expenses</p>
+      <div className="rounded-2xl border border-app bg-app-surface p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-[color-mix(in_oklab,var(--app-text)_4%,transparent)]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-app-secondary">{item.name}</p>
+        <p className="mt-1 text-base font-bold text-app-primary">{formatCurrency(item.value)}</p>
+        <p className="text-xs font-medium text-emerald-500">{item.percentage}% of total expenses</p>
       </div>
     )
   }
@@ -18,7 +18,7 @@ function ExpenseBreakdownTooltip({ active, payload }) {
 export function ExpenseBreakdown({ data = [] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-white/6 bg-white/[0.02] text-sm text-slate-500">
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-app bg-app-hover text-sm text-app-muted">
         No expense data available for the selected period.
       </div>
     )

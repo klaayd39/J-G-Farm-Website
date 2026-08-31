@@ -86,7 +86,7 @@ export function DataTable({
       <div className="overflow-hidden rounded-2xl border border-app bg-app-surface/80 shadow-xl backdrop-blur-md">
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
           <table className="w-full min-w-[640px] text-left text-sm text-app-secondary">
-            <thead className="border-b border-white/8 bg-black/30 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            <thead className="border-b border-app bg-app-hover text-[11px] font-semibold uppercase tracking-[0.12em] text-app-muted">
               <tr>
                 {columns.map((col, idx) => (
                   <th
@@ -112,7 +112,7 @@ export function DataTable({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-app">
               {paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="px-4 py-12 text-center text-sm text-slate-500">
@@ -121,7 +121,7 @@ export function DataTable({
                 </tr>
               ) : (
                 paginatedData.map((row, rowIdx) => (
-                  <tr key={row.id || rowIdx} className="group transition-colors hover:bg-white/[0.035]">
+                  <tr key={row.id || rowIdx} className="group transition-colors hover:bg-app-hover">
                     {columns.map((col, colIdx) => (
                       <td
                         key={colIdx}

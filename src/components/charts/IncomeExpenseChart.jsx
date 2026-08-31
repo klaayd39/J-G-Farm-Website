@@ -17,25 +17,25 @@ function IncomeExpenseTooltip({ active, payload, label }) {
     const profit = income - expense
 
     return (
-      <div className="rounded-2xl border border-white/12 bg-[#0a0a0a]/95 p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-white/5">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+      <div className="rounded-2xl border border-app bg-app-surface p-3.5 shadow-2xl backdrop-blur-xl ring-1 ring-[color-mix(in_oklab,var(--app-text)_4%,transparent)]">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-app-secondary">{label}</p>
         <div className="space-y-1.5 text-xs">
           <div className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="flex items-center gap-1.5 text-emerald-500">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Income
             </span>
-            <span className="font-semibold text-slate-100">{formatCurrency(income)}</span>
+            <span className="font-semibold text-app-primary">{formatCurrency(income)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5 text-rose-400">
-              <span className="h-2 w-2 rounded-full bg-rose-400" />
+            <span className="flex items-center gap-1.5 text-rose-500">
+              <span className="h-2 w-2 rounded-full bg-rose-500" />
               Expense
             </span>
-            <span className="font-semibold text-slate-100">{formatCurrency(expense)}</span>
+            <span className="font-semibold text-app-primary">{formatCurrency(expense)}</span>
           </div>
-          <div className="border-t border-white/8 pt-1.5 flex items-center justify-between gap-4 font-semibold">
-            <span className="text-slate-400">Net Result</span>
+          <div className="flex items-center justify-between gap-4 border-t border-app pt-1.5 font-semibold">
+            <span className="text-app-secondary">Net Result</span>
             <span className={profit >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
               {formatCurrency(profit)}
             </span>
@@ -50,7 +50,7 @@ function IncomeExpenseTooltip({ active, payload, label }) {
 export function IncomeExpenseChart({ data = [] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-white/6 bg-white/[0.02] text-sm text-slate-500">
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-app bg-app-hover text-sm text-app-muted">
         No transaction history available for the selected period.
       </div>
     )
@@ -82,7 +82,7 @@ export function IncomeExpenseChart({ data = [] }) {
           <Tooltip content={IncomeExpenseTooltip} />
           <Legend
             wrapperStyle={{ paddingTop: '12px', fontSize: '12px' }}
-            formatter={(value) => <span className="text-slate-300 capitalize font-medium">{value}</span>}
+            formatter={(value) => <span className="text-app-secondary capitalize font-medium">{value}</span>}
           />
           <Bar dataKey="income" name="Income" fill="url(#incomeGrad)" radius={[6, 6, 0, 0]} maxBarSize={32} />
           <Bar dataKey="expense" name="Expense" fill="url(#expenseGrad)" radius={[6, 6, 0, 0]} maxBarSize={32} />

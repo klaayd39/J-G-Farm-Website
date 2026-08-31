@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
@@ -54,25 +54,22 @@ function PublicRoute({ children }) {
 }
 
 function ThemedToaster() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
   return (
     <Toaster
       position="top-center"
       containerClassName="!top-[max(0.75rem,env(safe-area-inset-top))] sm:!top-4"
       toastOptions={{
         style: {
-          background: isDark ? '#0a0a0a' : '#ffffff',
-          color: isDark ? '#d7ffe0' : '#0f172a',
-          border: isDark ? '1px solid rgba(215, 255, 224, 0.15)' : '1px solid rgba(15, 23, 42, 0.1)',
+          background: 'var(--app-surface)',
+          color: 'var(--app-text-primary)',
+          border: '1px solid var(--app-border-strong)',
           borderRadius: '16px',
           fontSize: '13px',
         },
         success: {
           iconTheme: {
-            primary: isDark ? '#d7ffe0' : '#15803d',
-            secondary: isDark ? '#050505' : '#ffffff',
+            primary: 'var(--app-accent)',
+            secondary: 'var(--app-accent-contrast)',
           },
         },
       }}

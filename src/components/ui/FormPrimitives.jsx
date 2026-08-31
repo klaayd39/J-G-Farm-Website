@@ -5,8 +5,8 @@ export function FormSection({ title, description, children, className = '' }) {
     <section className={cn('space-y-3', className)}>
       {(title || description) && (
         <div className="space-y-0.5">
-          {title && <h3 className="text-sm font-medium text-slate-200">{title}</h3>}
-          {description && <p className="text-xs leading-relaxed text-slate-500">{description}</p>}
+          {title && <h3 className="text-sm font-medium text-app-primary">{title}</h3>}
+          {description && <p className="text-xs leading-relaxed text-app-muted">{description}</p>}
         </div>
       )}
       {children}
@@ -16,7 +16,7 @@ export function FormSection({ title, description, children, className = '' }) {
 
 export function ComputedHint({ children }) {
   return (
-    <p className="mt-1.5 text-[11px] font-medium tabular-nums text-slate-400">{children}</p>
+    <p className="mt-1.5 text-[11px] font-medium tabular-nums text-app-secondary">{children}</p>
   )
 }
 
@@ -24,7 +24,7 @@ export function SegmentedControl({ value, onChange, options, className = '' }) {
   return (
     <div
       className={cn(
-        'inline-flex w-full rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5',
+        'inline-flex w-full rounded-lg border border-app bg-app-hover p-0.5',
         className
       )}
       role="tablist"
@@ -40,9 +40,7 @@ export function SegmentedControl({ value, onChange, options, className = '' }) {
             onClick={() => onChange(option.value)}
             className={cn(
               'flex-1 rounded-md px-3 py-2 text-xs font-medium transition-colors',
-              active
-                ? 'bg-white/[0.08] text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-300'
+              active ? 'bg-app-surface text-app-primary shadow-sm' : 'text-app-secondary hover:text-app-primary'
             )}
           >
             {option.label}
@@ -63,16 +61,16 @@ export function InventorySummary({ items, compact = false }) {
         ? 'grid-cols-3'
         : 'grid-cols-2'
   return (
-    <div className={`grid ${cols} gap-px overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.06]`}>
+    <div className={`grid ${cols} gap-px overflow-hidden rounded-lg border border-app bg-app-hover`}>
       {items.map((item) => (
-        <div key={item.label} className="min-w-0 bg-[#0a0a0a] px-2.5 py-2 sm:px-3 sm:py-2.5">
-          <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">
+        <div key={item.label} className="min-w-0 bg-app-surface px-2.5 py-2 sm:px-3 sm:py-2.5">
+          <p className="truncate text-[10px] font-medium uppercase tracking-wider text-app-muted">
             {item.label}
           </p>
-          <p className={cn('mt-0.5 truncate text-sm font-medium tabular-nums', item.tone || 'text-slate-200')}>
+          <p className={cn('mt-0.5 truncate text-sm font-medium tabular-nums', item.tone || 'text-app-primary')}>
             {item.value}
           </p>
-          {item.sub && <p className="mt-0.5 truncate text-[10px] text-slate-500">{item.sub}</p>}
+          {item.sub && <p className="mt-0.5 truncate text-[10px] text-app-muted">{item.sub}</p>}
         </div>
       ))}
     </div>
@@ -81,20 +79,20 @@ export function InventorySummary({ items, compact = false }) {
 
 export function FormTotal({ label, amount, lines = [] }) {
   return (
-    <div className="space-y-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+    <div className="space-y-2 rounded-lg border border-app bg-app-hover px-4 py-3">
       {lines.length > 0 && (
-        <div className="space-y-1 border-b border-white/[0.06] pb-2">
+        <div className="space-y-1 border-b border-app pb-2">
           {lines.map((line) => (
             <div key={line.label} className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">{line.label}</span>
-              <span className="tabular-nums text-slate-400">{line.amount}</span>
+              <span className="text-app-muted">{line.label}</span>
+              <span className="tabular-nums text-app-secondary">{line.amount}</span>
             </div>
           ))}
         </div>
       )}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
-        <span className="font-display text-lg font-semibold tabular-nums text-emerald-300">{amount}</span>
+        <span className="text-xs font-medium uppercase tracking-wider text-app-muted">{label}</span>
+        <span className="font-display text-lg font-semibold tabular-nums text-emerald-500">{amount}</span>
       </div>
     </div>
   )
@@ -102,7 +100,7 @@ export function FormTotal({ label, amount, lines = [] }) {
 
 export function FormActions({ children, className = '' }) {
   return (
-    <div className={cn('flex items-center justify-end gap-2 border-t border-white/[0.06] pt-4', className)}>
+    <div className={cn('flex items-center justify-end gap-2 border-t border-app pt-4', className)}>
       {children}
     </div>
   )

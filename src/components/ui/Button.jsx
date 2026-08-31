@@ -2,7 +2,7 @@ const VARIANTS = {
   primary:
     'bg-farm-accent text-[color:var(--app-accent-contrast)] hover:opacity-90',
   secondary:
-    'border border-white/[0.08] bg-white/[0.04] text-slate-300 hover:bg-white/[0.07] hover:text-white',
+    'border border-app bg-app-hover text-app-secondary hover:border-app-strong hover:text-app-primary',
   ghost: 'text-slate-400 hover:bg-white/[0.05] hover:text-white',
   danger: 'bg-red-500/10 text-red-300 ring-1 ring-red-500/20 hover:bg-red-500/15',
 }
