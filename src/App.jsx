@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
@@ -21,7 +22,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
+      <div className="flex min-h-screen items-center justify-center bg-app">
         <LoadingSpinner text="Checking authentication..." />
       </div>
     )
@@ -39,7 +40,7 @@ function PublicRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
+      <div className="flex min-h-screen items-center justify-center bg-app">
         <LoadingSpinner text="Loading..." />
       </div>
     )
@@ -52,29 +53,39 @@ function PublicRoute({ children }) {
   return children
 }
 
+function ThemedToaster() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  return (
+    <Toaster
+      position="top-center"
+      containerClassName="!top-[max(0.75rem,env(safe-area-inset-top))] sm:!top-4"
+      toastOptions={{
+        style: {
+          background: isDark ? '#0a0a0a' : '#ffffff',
+          color: isDark ? '#d7ffe0' : '#0f172a',
+          border: isDark ? '1px solid rgba(215, 255, 224, 0.15)' : '1px solid rgba(15, 23, 42, 0.1)',
+          borderRadius: '16px',
+          fontSize: '13px',
+        },
+        success: {
+          iconTheme: {
+            primary: isDark ? '#d7ffe0' : '#15803d',
+            secondary: isDark ? '#050505' : '#ffffff',
+          },
+        },
+      }}
+    />
+  )
+}
+
 export function App() {
   return (
-    <AuthProvider>
-      <Toaster
-        position="top-center"
-        containerClassName="!top-[max(0.75rem,env(safe-area-inset-top))] sm:!top-4"
-        toastOptions={{
-          style: {
-            background: '#0a0a0a',
-            color: '#d7ffe0',
-            border: '1px solid rgba(215, 255, 224, 0.15)',
-            borderRadius: '16px',
-            fontSize: '13px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#d7ffe0',
-              secondary: '#050505',
-            },
-          },
-        }}
-      />
-      <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <ThemedToaster />
+        <Routes>
         <Route
           path="/login"
           element={
@@ -123,8 +134,9 @@ export function App() {
           <Route path="reports" element={<Reports />} />
         </Route>
         <Route path="*" element={<Navigate to={MODULE_SELECT_PATH} replace />} />
-      </Routes>
-    </AuthProvider>
+        </Routes>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

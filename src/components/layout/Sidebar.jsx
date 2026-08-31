@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { NAV_ITEMS } from '../../nav'
 import { BrandMark } from '../ui/BrandMark'
 import { SwitchModuleLink } from '../ui/SwitchModuleLink'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 export function Sidebar({ onClose }) {
   const { user, profile, signOut } = useAuth()
@@ -11,11 +12,11 @@ export function Sidebar({ onClose }) {
   const initial = displayName.trim().charAt(0).toUpperCase()
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-[#d7ffe0]/10 bg-[#050505]/95 px-3.5 py-5 shadow-2xl backdrop-blur-xl">
+    <aside className="flex h-full w-full flex-col border-r border-app bg-app-header px-3.5 py-5 shadow-2xl backdrop-blur-xl">
       <div className="flex items-center gap-3 px-1.5 pb-6">
         <BrandMark size={36} />
         <div className="min-w-0">
-          <p className="truncate font-display text-[1.05rem] font-semibold leading-tight tracking-tight text-white">J&amp;G Farm</p>
+          <p className="truncate font-display text-[1.05rem] font-semibold leading-tight tracking-tight text-app-primary">J&amp;G Farm</p>
         </div>
       </div>
 
@@ -54,14 +55,15 @@ export function Sidebar({ onClose }) {
         })}
       </nav>
 
-      <div className="mt-4 rounded-2xl border border-white/8 bg-gradient-to-b from-white/[0.05] to-transparent p-3 shadow-inner">
-        <div className="mb-3 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d7ffe0] text-xs font-bold text-[#050505] shadow-md shadow-[#d7ffe0]/20">
+      <div className="mt-4 space-y-2 rounded-2xl border border-app bg-app-hover p-3 shadow-inner">
+        <ThemeToggle className="w-full" showLabel />
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-farm-accent text-xs font-bold text-[color:var(--app-accent-contrast)] shadow-md">
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-white">{displayName}</p>
-            <p className="truncate text-[10px] font-medium text-slate-400">{user?.email || 'Farm Account'}</p>
+            <p className="truncate text-xs font-semibold text-app-primary">{displayName}</p>
+            <p className="truncate text-[10px] font-medium text-app-secondary">{user?.email || 'Farm Account'}</p>
           </div>
         </div>
         <button

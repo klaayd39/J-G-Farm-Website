@@ -83,9 +83,9 @@ export function DataTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/80 shadow-xl backdrop-blur-md">
+      <div className="overflow-hidden rounded-2xl border border-app bg-app-surface/80 shadow-xl backdrop-blur-md">
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <table className="w-full min-w-[640px] text-left text-sm text-slate-200">
+          <table className="w-full min-w-[640px] text-left text-sm text-app-secondary">
             <thead className="border-b border-white/8 bg-black/30 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
               <tr>
                 {columns.map((col, idx) => (

@@ -29,12 +29,12 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
       onClick={handleBackdropClick}
       className={cn(
         maxWidth,
-        'm-auto max-h-[min(90dvh,720px)] w-[calc(100%-0.75rem)] flex-col overflow-hidden rounded-xl border border-[#d7ffe0]/10 bg-[#0a0a0a] p-0 text-[#d7ffe0] shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
+        'm-auto max-h-[min(90dvh,720px)] w-[calc(100%-0.75rem)] flex-col overflow-hidden rounded-xl border border-app bg-app-surface p-0 text-app shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
         open ? 'flex' : 'hidden'
       )}
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-[#d7ffe0]/8 px-4 py-3 sm:px-5 sm:py-3.5">
-        <h2 className="truncate pr-3 text-sm font-medium text-white">{title}</h2>
+      <div className="flex shrink-0 items-center justify-between border-b border-app px-4 py-3 sm:px-5 sm:py-3.5">
+        <h2 className="truncate pr-3 text-sm font-medium text-app-primary">{title}</h2>
         <button
           type="button"
           onClick={onClose}

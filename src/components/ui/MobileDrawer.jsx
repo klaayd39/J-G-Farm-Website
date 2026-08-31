@@ -11,9 +11,9 @@ export function MobileDrawer({ open, onClose, children }) {
         aria-label="Close menu"
         onClick={onClose}
       />
-      <div className="relative flex h-full w-[min(100%,20rem)] flex-col bg-farm-bg shadow-2xl safe-top">
-        <div className="flex shrink-0 items-center justify-between border-b border-white/8 px-3 py-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Menu</span>
+      <div className="relative flex h-full w-[min(100%,20rem)] flex-col bg-app shadow-2xl safe-top">
+        <div className="flex shrink-0 items-center justify-between border-b border-app px-3 py-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">Menu</span>
           <button
             type="button"
             onClick={onClose}

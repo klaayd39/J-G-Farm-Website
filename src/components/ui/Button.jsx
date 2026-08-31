@@ -1,6 +1,6 @@
 const VARIANTS = {
   primary:
-    'bg-[#d7ffe0] text-[#050505] hover:bg-[#c5f5d0]',
+    'bg-farm-accent text-[color:var(--app-accent-contrast)] hover:opacity-90',
   secondary:
     'border border-white/[0.08] bg-white/[0.04] text-slate-300 hover:bg-white/[0.07] hover:text-white',
   ghost: 'text-slate-400 hover:bg-white/[0.05] hover:text-white',

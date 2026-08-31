@@ -5,6 +5,7 @@ import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck, Sprout, BarChart3, Ph
 import toast from 'react-hot-toast'
 import { BrandMark } from '../components/ui/BrandMark'
 import { Button } from '../components/ui/Button'
+import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { MODULE_SELECT_PATH } from '../constants/modules'
 import heroImage from '../assets/hero.png'
 
@@ -33,7 +34,7 @@ export function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2 bg-[#050505] safe-top">
+    <div className="grid min-h-screen lg:grid-cols-2 bg-app safe-top">
       <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between p-12">
         <img
           src={heroImage}
@@ -92,7 +93,10 @@ export function Login() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center px-4 py-12 sm:px-8">
+      <div className="relative flex items-center justify-center px-4 py-12 sm:px-8">
+        <div className="absolute right-4 top-4 sm:right-8 sm:top-8">
+          <ThemeToggle compact />
+        </div>
         <div className="w-full max-w-[420px] space-y-6">
           <div className="flex items-center gap-3 lg:hidden">
             <BrandMark size={40} />
@@ -103,7 +107,7 @@ export function Login() {
           </div>
 
           <div>
-            <h1 className="font-display text-3xl font-semibold text-white tracking-tight">Sign in to Farm Portal</h1>
+            <h1 className="font-display text-3xl font-semibold text-app-primary tracking-tight">Sign in to Farm Portal</h1>
             <p className="mt-1.5 text-sm text-slate-400">Access your harvest analytics and financial ledger.</p>
           </div>
 

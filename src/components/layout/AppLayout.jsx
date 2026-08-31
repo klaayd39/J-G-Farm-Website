@@ -6,13 +6,14 @@ import { MobileNav } from './MobileNav'
 import { BrandMark } from '../ui/BrandMark'
 import { SwitchModuleLink } from '../ui/SwitchModuleLink'
 import { MobileDrawer } from '../ui/MobileDrawer'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-farm-bg text-[#d7ffe0] antialiased">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(215,255,224,0.06),transparent_42%),radial-gradient(ellipse_at_bottom_right,rgba(215,255,224,0.04),transparent_40%)]" />
+    <div className="flex min-h-screen bg-farm-bg text-app antialiased">
+      <div className="pointer-events-none fixed inset-0 app-gradient-bg" />
 
       <div className="relative z-30 hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <Sidebar />
@@ -23,12 +24,13 @@ export function AppLayout() {
       </MobileDrawer>
 
       <div className="relative flex min-w-0 flex-1 flex-col md:pl-64">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-[#d7ffe0]/10 bg-[#050505]/85 px-3 backdrop-blur-md safe-top md:hidden">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-app bg-app-header px-3 backdrop-blur-md safe-top md:hidden">
           <div className="flex min-w-0 items-center gap-2">
             <BrandMark size={28} />
-            <span className="truncate font-display text-base font-medium text-white">J&amp;G Farm</span>
+            <span className="truncate font-display text-base font-medium text-app-primary">J&amp;G Farm</span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <ThemeToggle compact />
             <SwitchModuleLink compact />
             <button
               type="button"

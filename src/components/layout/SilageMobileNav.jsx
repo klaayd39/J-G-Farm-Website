@@ -3,7 +3,7 @@ import { SILAGE_NAV_ITEMS } from '../../nav-silage'
 
 export function SilageMobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-sky-400/10 bg-[#050505]/95 px-4 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-sky-400/10 bg-app-header px-4 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex h-14 max-w-md items-stretch justify-around">
         {SILAGE_NAV_ITEMS.map((item) => {
           const Icon = item.icon

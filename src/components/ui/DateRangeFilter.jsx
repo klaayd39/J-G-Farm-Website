@@ -13,7 +13,7 @@ export function DateRangeFilter({
 }) {
   return (
     <div className={cn('flex w-full flex-col gap-2 lg:w-auto lg:max-w-full', className)}>
-      <div className="flex w-full items-center gap-1.5 rounded-xl border border-white/10 bg-[#0a0a0a]/90 px-2 py-1.5 shadow-lg backdrop-blur-md sm:gap-2 sm:rounded-2xl sm:px-2.5">
+      <div className="flex w-full items-center gap-1.5 rounded-xl border border-app bg-app-surface px-2 py-1.5 shadow-lg backdrop-blur-md sm:gap-2 sm:rounded-2xl sm:px-2.5">
         <Calendar size={14} className="shrink-0 text-emerald-400" />
         <label className="sr-only" htmlFor="date-from">
           From date
@@ -23,7 +23,7 @@ export function DateRangeFilter({
           type="date"
           value={customFrom}
           onChange={(e) => setCustomFrom(e.target.value)}
-          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/40 px-1.5 py-1.5 text-[11px] text-white focus:border-emerald-500 focus:outline-none sm:rounded-xl sm:px-2 sm:text-xs"
+          className="min-w-0 flex-1 rounded-lg border border-app bg-app-hover px-1.5 py-1.5 text-[11px] text-app-primary focus:border-emerald-500 focus:outline-none sm:rounded-xl sm:px-2 sm:text-xs"
         />
         <span className="shrink-0 text-[10px] font-medium text-slate-500 sm:text-[11px]">to</span>
         <label className="sr-only" htmlFor="date-to">
@@ -35,11 +35,11 @@ export function DateRangeFilter({
           value={customTo}
           min={customFrom || undefined}
           onChange={(e) => setCustomTo(e.target.value)}
-          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/40 px-1.5 py-1.5 text-[11px] text-white focus:border-emerald-500 focus:outline-none sm:rounded-xl sm:px-2 sm:text-xs"
+          className="min-w-0 flex-1 rounded-lg border border-app bg-app-hover px-1.5 py-1.5 text-[11px] text-app-primary focus:border-emerald-500 focus:outline-none sm:rounded-xl sm:px-2 sm:text-xs"
         />
       </div>
 
-      <div className="flex w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-white/10 bg-[#0a0a0a]/90 p-0.5 shadow-lg backdrop-blur-md no-scrollbar sm:rounded-2xl sm:p-1">
+      <div className="flex w-full items-center gap-0.5 overflow-x-auto rounded-xl border border-app bg-app-surface p-0.5 shadow-lg backdrop-blur-md no-scrollbar sm:rounded-2xl sm:p-1">
         {Object.entries(presets).map(([key, label]) => {
           const isActive = preset === key
           return (

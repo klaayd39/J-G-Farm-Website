@@ -1,12 +1,79 @@
 @import "tailwindcss";
 
+:root,
+html.dark {
+  color-scheme: dark;
+
+  --app-bg: #050505;
+  --app-surface: #0a0a0a;
+  --app-surface-muted: rgba(10, 10, 10, 0.82);
+  --app-text: #d7ffe0;
+  --app-text-primary: #ffffff;
+  --app-text-secondary: #94a3b8;
+  --app-text-muted: #64748b;
+  --app-accent: #d7ffe0;
+  --app-accent-contrast: #050505;
+  --app-border: rgba(215, 255, 224, 0.1);
+  --app-border-strong: rgba(215, 255, 224, 0.15);
+  --app-hover: rgba(255, 255, 255, 0.06);
+  --app-input-bg: rgba(215, 255, 224, 0.03);
+  --app-input-border: rgba(215, 255, 224, 0.1);
+  --app-backdrop: rgba(5, 5, 5, 0.82);
+  --app-glass: rgba(10, 10, 10, 0.82);
+  --app-glass-gradient-from: rgba(10, 10, 10, 0.88);
+  --app-glass-gradient-to: rgba(5, 5, 5, 0.9);
+  --app-shadow: rgba(0, 0, 0, 0.5);
+  --app-gradient-a: rgba(215, 255, 224, 0.06);
+  --app-gradient-b: rgba(215, 255, 224, 0.04);
+  --app-selection-bg: color-mix(in oklab, #d7ffe0 35%, transparent);
+  --app-selection-fg: #050505;
+  --app-focus: #d7ffe0;
+  --app-scrollbar-track: rgba(5, 5, 5, 0.6);
+  --app-scrollbar-thumb: rgba(215, 255, 224, 0.18);
+  --app-scrollbar-thumb-hover: rgba(215, 255, 224, 0.32);
+  --app-date-filter: invert(1);
+}
+
+html.light {
+  color-scheme: light;
+
+  --app-bg: #f4f7f5;
+  --app-surface: #ffffff;
+  --app-surface-muted: rgba(255, 255, 255, 0.92);
+  --app-text: #1a2e24;
+  --app-text-primary: #0f172a;
+  --app-text-secondary: #475569;
+  --app-text-muted: #64748b;
+  --app-accent: #15803d;
+  --app-accent-contrast: #ffffff;
+  --app-border: rgba(15, 23, 42, 0.1);
+  --app-border-strong: rgba(15, 23, 42, 0.16);
+  --app-hover: rgba(15, 23, 42, 0.05);
+  --app-input-bg: rgba(15, 23, 42, 0.03);
+  --app-input-border: rgba(15, 23, 42, 0.12);
+  --app-backdrop: rgba(15, 23, 42, 0.35);
+  --app-glass: rgba(255, 255, 255, 0.92);
+  --app-glass-gradient-from: rgba(255, 255, 255, 0.96);
+  --app-glass-gradient-to: rgba(248, 250, 249, 0.98);
+  --app-shadow: rgba(15, 23, 42, 0.08);
+  --app-gradient-a: rgba(21, 128, 61, 0.06);
+  --app-gradient-b: rgba(21, 128, 61, 0.04);
+  --app-selection-bg: color-mix(in oklab, #15803d 22%, transparent);
+  --app-selection-fg: #0f172a;
+  --app-focus: #15803d;
+  --app-scrollbar-track: rgba(241, 245, 249, 0.9);
+  --app-scrollbar-thumb: rgba(100, 116, 139, 0.35);
+  --app-scrollbar-thumb-hover: rgba(100, 116, 139, 0.55);
+  --app-date-filter: none;
+}
+
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", ui-serif, Georgia, serif;
 
-  --color-farm-bg: #050505;
-  --color-farm-surface: #0a0a0a;
-  --color-farm-accent: #d7ffe0;
+  --color-farm-bg: var(--app-bg);
+  --color-farm-surface: var(--app-surface);
+  --color-farm-accent: var(--app-accent);
 
   --color-emerald-50: #f4fff7;
   --color-emerald-100: #ecffef;
@@ -22,7 +89,6 @@
 }
 
 html {
-  color-scheme: dark;
   scroll-behavior: smooth;
 }
 
@@ -30,46 +96,62 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
-  background-color: #050505;
-  color: #d7ffe0;
+  background-color: var(--app-bg);
+  color: var(--app-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {
   min-height: 100vh;
 }
 
+.bg-app { background-color: var(--app-bg); }
+.bg-app-surface { background-color: var(--app-surface); }
+.bg-app-header { background-color: color-mix(in oklab, var(--app-bg) 88%, transparent); }
+.bg-app-hover { background-color: var(--app-hover); }
+.text-app { color: var(--app-text); }
+.text-app-primary { color: var(--app-text-primary); }
+.text-app-secondary { color: var(--app-text-secondary); }
+.text-app-muted { color: var(--app-text-muted); }
+.text-app-accent { color: var(--app-accent); }
+.border-app { border-color: var(--app-border); }
+.border-app-strong { border-color: var(--app-border-strong); }
+.app-gradient-bg {
+  background:
+    radial-gradient(ellipse at top left, var(--app-gradient-a), transparent 42%),
+    radial-gradient(ellipse at bottom right, var(--app-gradient-b), transparent 40%);
+}
+
 ::selection {
-  background: color-mix(in oklab, #d7ffe0 35%, transparent);
-  color: #050505;
+  background: var(--app-selection-bg);
+  color: var(--app-selection-fg);
 }
 
 :focus-visible {
-  outline: 2px solid #d7ffe0;
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
-/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(5, 5, 5, 0.6);
+  background: var(--app-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(215, 255, 224, 0.18);
+  background: var(--app-scrollbar-thumb);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(215, 255, 224, 0.32);
+  background: var(--app-scrollbar-thumb-hover);
 }
 
-/* Hide scrollbar for clean horizontal tab bars */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -81,7 +163,7 @@ body {
 input,
 select,
 textarea {
-  color-scheme: dark;
+  color-scheme: inherit;
 }
 
 dialog {
@@ -101,11 +183,11 @@ input[type='date'].field-input::-webkit-calendar-picker-indicator,
 input[type='time'].field-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.55;
-  filter: invert(1);
+  filter: var(--app-date-filter);
 }
 
 dialog::backdrop {
-  background: rgba(5, 5, 5, 0.82);
+  background: var(--app-backdrop);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -126,32 +208,31 @@ dialog::backdrop {
   font-optical-sizing: auto;
 }
 
-/* Premium Field & Label Styling */
 .field-input {
   display: block;
   width: 100%;
   min-height: 40px;
   border-radius: 0.5rem;
-  border: 1px solid rgba(215, 255, 224, 0.1);
-  background: rgba(215, 255, 224, 0.03);
+  border: 1px solid var(--app-input-border);
+  background: var(--app-input-bg);
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  color: #d7ffe0;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  color: var(--app-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .field-input:hover {
-  border-color: rgba(215, 255, 224, 0.18);
+  border-color: var(--app-border-strong);
 }
 
 .field-input::placeholder {
-  color: rgba(215, 255, 224, 0.35);
+  color: color-mix(in oklab, var(--app-text) 35%, transparent);
 }
 
 .field-input:focus {
   outline: none;
-  border-color: rgba(215, 255, 224, 0.45);
-  box-shadow: 0 0 0 2px rgba(215, 255, 224, 0.12);
+  border-color: color-mix(in oklab, var(--app-accent) 45%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--app-accent) 12%, transparent);
 }
 
 .field-label {
@@ -160,37 +241,36 @@ dialog::backdrop {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(215, 255, 224, 0.55);
+  color: color-mix(in oklab, var(--app-text) 55%, transparent);
   margin-bottom: 0.375rem;
 }
 
 .field-input-readonly {
   cursor: not-allowed;
-  border-color: rgba(215, 255, 224, 0.06);
-  background: rgba(215, 255, 224, 0.02);
-  color: rgba(215, 255, 224, 0.65);
+  border-color: color-mix(in oklab, var(--app-text) 8%, transparent);
+  background: color-mix(in oklab, var(--app-text) 2%, transparent);
+  color: color-mix(in oklab, var(--app-text) 65%, transparent);
 }
 
 .field-input-readonly:focus {
-  border-color: rgba(215, 255, 224, 0.06);
+  border-color: color-mix(in oklab, var(--app-text) 8%, transparent);
   box-shadow: none;
 }
 
-/* Glass Card & Surface Utilities */
 .glass-panel {
-  background: rgba(10, 10, 10, 0.82);
+  background: var(--app-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(215, 255, 224, 0.08);
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(215, 255, 224, 0.04);
+  border: 1px solid var(--app-border);
+  box-shadow: 0 12px 32px -12px var(--app-shadow), inset 0 1px 0 0 color-mix(in oklab, var(--app-text) 4%, transparent);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(10, 10, 10, 0.88) 0%, rgba(5, 5, 5, 0.9) 100%);
+  background: linear-gradient(135deg, var(--app-glass-gradient-from) 0%, var(--app-glass-gradient-to) 100%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(215, 255, 224, 0.08);
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(215, 255, 224, 0.05);
+  border: 1px solid var(--app-border);
+  box-shadow: 0 8px 24px -8px var(--app-shadow), inset 0 1px 0 0 color-mix(in oklab, var(--app-text) 5%, transparent);
 }
 
 .safe-top {
@@ -206,3 +286,14 @@ dialog::backdrop {
     padding-bottom: 2.5rem;
   }
 }
+
+/* Light mode readability for shared Tailwind patterns */
+html.light .text-white { color: var(--app-text-primary); }
+html.light .text-emerald-300 { color: #15803d; }
+html.light .text-emerald-400 { color: #16a34a; }
+html.light .text-sky-300 { color: #0369a1; }
+html.light .text-amber-300 { color: #b45309; }
+html.light .text-rose-300 { color: #be123c; }
+html.light .bg-emerald-500\/15 { background-color: rgba(21, 128, 61, 0.12); }
+html.light .ring-emerald-400\/25 { --tw-ring-color: rgba(21, 128, 61, 0.25); }
+html.light .shadow-emerald-500\/10 { --tw-shadow-color: rgba(21, 128, 61, 0.1); }

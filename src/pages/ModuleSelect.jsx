@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { LogOut, ArrowRight, Sparkles } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { BrandMark } from '../components/ui/BrandMark'
+import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { MODULES } from '../constants/modules'
 import { cn } from '../utils/cn'
 
@@ -32,18 +33,20 @@ export function ModuleSelect() {
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'there'
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#050505] text-[#d7ffe0] antialiased safe-top">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(215,255,224,0.08),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(215,255,224,0.05),transparent_45%)]" />
+    <div className="relative flex min-h-screen flex-col bg-app text-app antialiased safe-top">
+      <div className="pointer-events-none fixed inset-0 app-gradient-bg" />
 
       <header className="relative z-10 flex items-center justify-between px-4 py-5 sm:px-8 sm:py-6">
         <div className="flex items-center gap-3">
           <BrandMark size={40} />
           <div>
-            <p className="font-display text-lg font-semibold text-white sm:text-xl">J&amp;G Farm</p>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Operations Portal</p>
+            <p className="font-display text-lg font-semibold text-app-primary sm:text-xl">J&amp;G Farm</p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-app-muted">Operations Portal</p>
           </div>
         </div>
-        <button
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
+          <button
           type="button"
           onClick={signOut}
           className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-300"
@@ -51,11 +54,12 @@ export function ModuleSelect() {
           <LogOut size={15} />
           <span className="hidden sm:inline">Sign out</span>
         </button>
+        </div>
       </header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 pb-[max(3rem,env(safe-area-inset-bottom))] sm:px-8">
         <div className="mb-8 text-center sm:mb-10">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#d7ffe0]/15 bg-[#d7ffe0]/5 px-3 py-1 text-[11px] font-semibold text-[#d7ffe0]/90">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-app bg-farm-accent/10 px-3 py-1 text-[11px] font-semibold text-app-accent">
             <Sparkles size={13} />
             Welcome back, {displayName}
           </div>
@@ -81,7 +85,7 @@ export function ModuleSelect() {
                 type={isComingSoon ? undefined : 'button'}
                 onClick={isComingSoon ? undefined : () => navigate(module.to)}
                 className={cn(
-                  'group relative flex flex-col overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/90 p-5 text-left shadow-lg sm:p-6',
+                  'group relative flex flex-col overflow-hidden rounded-2xl border border-app bg-app-surface p-5 text-left shadow-lg sm:p-6',
                   !isComingSoon && 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl',
                   isComingSoon && 'cursor-default opacity-80',
                   accent.border,
@@ -97,7 +101,7 @@ export function ModuleSelect() {
                       Coming Soon
                     </span>
                   ) : (
-                    <span className="rounded-full bg-[#d7ffe0]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#d7ffe0]">
+                    <span className="rounded-full bg-farm-accent/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-app-accent">
                       Active
                     </span>
                   )}
@@ -108,7 +112,7 @@ export function ModuleSelect() {
 
                 <span className={cn(
                   'mt-5 inline-flex items-center gap-1.5 text-sm font-medium',
-                  isComingSoon ? 'text-slate-500' : 'text-[#d7ffe0]/80 transition-colors group-hover:text-[#d7ffe0]'
+                  isComingSoon ? 'text-app-muted' : 'text-app-accent/80 transition-colors group-hover:text-app-accent'
                 )}>
                   {isComingSoon ? 'Not available yet' : 'Enter module'}
                   {!isComingSoon && <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />}
