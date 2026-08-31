@@ -4,9 +4,6 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
-import { JuiceLayout } from './components/layout/JuiceLayout'
-import { JuiceHarvests } from './pages/juice/JuiceHarvests'
-import { JuiceIncome } from './pages/juice/JuiceIncome'
 import { SilageLayout } from './components/layout/SilageLayout'
 import { SilageHarvests } from './pages/silage/SilageHarvests'
 import { SilageIncome } from './pages/silage/SilageIncome'
@@ -94,20 +91,7 @@ export function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/juice"
-          element={
-            <ProtectedRoute>
-              <ErrorBoundary>
-                <JuiceLayout />
-              </ErrorBoundary>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="harvests" replace />} />
-          <Route path="harvests" element={<JuiceHarvests />} />
-          <Route path="income" element={<JuiceIncome />} />
-        </Route>
+        <Route path="/juice/*" element={<Navigate to={MODULE_SELECT_PATH} replace />} />
         <Route
           path="/silage"
           element={

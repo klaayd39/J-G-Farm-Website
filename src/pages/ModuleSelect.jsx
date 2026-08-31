@@ -73,15 +73,19 @@ export function ModuleSelect() {
             const accent = ACCENT[module.accent] || ACCENT.emerald
             const isComingSoon = module.status === 'coming-soon'
 
+            const CardTag = isComingSoon ? 'div' : 'button'
+
             return (
-              <button
+              <CardTag
                 key={module.id}
-                type="button"
-                onClick={() => navigate(module.to)}
+                type={isComingSoon ? undefined : 'button'}
+                onClick={isComingSoon ? undefined : () => navigate(module.to)}
                 className={cn(
-                  'group relative flex flex-col overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/90 p-5 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl sm:p-6',
+                  'group relative flex flex-col overflow-hidden rounded-2xl border border-[#d7ffe0]/10 bg-[#0a0a0a]/90 p-5 text-left shadow-lg sm:p-6',
+                  !isComingSoon && 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl',
+                  isComingSoon && 'cursor-default opacity-80',
                   accent.border,
-                  accent.glow
+                  !isComingSoon && accent.glow
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -102,11 +106,14 @@ export function ModuleSelect() {
                 <h2 className="mt-4 font-display text-lg font-semibold text-white">{module.title}</h2>
                 <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-400">{module.description}</p>
 
-                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#d7ffe0]/80 transition-colors group-hover:text-[#d7ffe0]">
-                  {isComingSoon ? 'Open module' : 'Enter module'}
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                <span className={cn(
+                  'mt-5 inline-flex items-center gap-1.5 text-sm font-medium',
+                  isComingSoon ? 'text-slate-500' : 'text-[#d7ffe0]/80 transition-colors group-hover:text-[#d7ffe0]'
+                )}>
+                  {isComingSoon ? 'Not available yet' : 'Enter module'}
+                  {!isComingSoon && <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />}
                 </span>
-              </button>
+              </CardTag>
             )
           })}
         </div>

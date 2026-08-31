@@ -13,10 +13,10 @@ export const MODULES = [
   {
     id: 'juice',
     title: 'Calamansi Juice',
-    description: 'Track juice harvest batches and sales by bags and cuttings.',
-    to: '/juice/harvests',
+    description: 'Juice production tracking — coming in a future update.',
+    to: '/juice',
     icon: GlassWater,
-    status: 'active',
+    status: 'coming-soon',
     accent: 'amber',
   },
   {
