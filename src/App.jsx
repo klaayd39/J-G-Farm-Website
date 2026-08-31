@@ -5,7 +5,9 @@ import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
 import { Juice } from './pages/Juice'
-import { Silage } from './pages/Silage'
+import { SilageLayout } from './components/layout/SilageLayout'
+import { SilageHarvests } from './pages/silage/SilageHarvests'
+import { SilageIncome } from './pages/silage/SilageIncome'
 import { Dashboard } from './pages/Dashboard'
 import { Income } from './pages/Income'
 import { Expenses } from './pages/Expenses'
@@ -101,10 +103,16 @@ export function App() {
           path="/silage"
           element={
             <ProtectedRoute>
-              <Silage />
+              <ErrorBoundary>
+                <SilageLayout />
+              </ErrorBoundary>
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="harvests" replace />} />
+          <Route path="harvests" element={<SilageHarvests />} />
+          <Route path="income" element={<SilageIncome />} />
+        </Route>
         <Route
           path="/"
           element={

@@ -22,10 +22,10 @@ export const MODULES = [
   {
     id: 'silage',
     title: 'Super Napier Silage',
-    description: 'Harvest, storage, and dispatch for Super Napier silage production.',
-    to: '/silage',
+    description: 'Track silage harvest batches and sales by bags and cuttings.',
+    to: '/silage/harvests',
     icon: Wheat,
-    status: 'coming-soon',
+    status: 'active',
     accent: 'blue',
   },
 ]
