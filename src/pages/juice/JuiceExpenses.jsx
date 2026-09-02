@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, PhilippinePeso, Package } from 'lucide-react'
+import { Plus, Download, Pencil, Trash2, PhilippinePeso, Filter } from 'lucide-react'
 import { DataTable } from '../../components/ui/DataTable'
 import { Modal } from '../../components/ui/Modal'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -7,8 +7,8 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { PageToolbar } from '../../components/ui/PageToolbar'
 import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { ReceiptLink } from '../../components/ui/ReceiptLink'
 import { QueryError } from '../../components/ui/QueryError'
 import { DateRangeFilter } from '../../components/ui/DateRangeFilter'
 import { JuiceExpenseForm } from '../../components/forms/JuiceExpenseForm'
@@ -16,20 +16,29 @@ import { useSupabaseQuery } from '../../hooks/useSupabaseQuery'
 import { useDateRange } from '../../hooks/useDateRange'
 import { useQueryErrorToast } from '../../hooks/useQueryErrorToast'
 import { supabase } from '../../lib/supabase'
-import { formatCurrency, formatDate } from '../../utils/formatters'
-import { calcLinesTotal, formatLinesSummary } from '../../utils/juiceUnits'
+import { deleteReceipt } from '../../utils/receiptStorage'
+import {
+  formatCurrency,
+  formatDate,
+  CATEGORY_LABELS,
+  CATEGORY_COLORS,
+} from '../../utils/formatters'
+import { formatLinesSummary } from '../../utils/juiceUnits'
+import { exportJuiceExpensesCSV } from '../../utils/csvExport'
+import { TABLE_STICKY_ACTIONS } from '../../constants/tableColumns'
 import toast from 'react-hot-toast'
 
 export function JuiceExpenses() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
   const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, filters, PRESETS } =
     useDateRange('thisYear')
 
-  const { data: expenseData, loading, error, refetch } = useSupabaseQuery('juice_expenses', {
+  const { data: rawExpenseData, loading, error, refetch } = useSupabaseQuery('juice_expenses', {
     orderBy: 'date',
     ascending: false,
     filters,
@@ -41,6 +50,15 @@ export function JuiceExpenses() {
     if (!deleteId) return
     setDeleting(true)
     try {
+      const expense = rawExpenseData.find((item) => item.id === deleteId)
+      if (expense?.receipt_url) {
+        try {
+          await deleteReceipt(expense.receipt_url)
+        } catch {
+          // Continue deleting the expense even if storage cleanup fails.
+        }
+      }
+
       const { error: deleteError } = await supabase.from('juice_expenses').delete().eq('id', deleteId)
       if (deleteError) throw deleteError
       toast.success('Expense entry deleted')
@@ -53,14 +71,13 @@ export function JuiceExpenses() {
     }
   }
 
+  const expenseData = useMemo(() => {
+    if (selectedCategory === 'all') return rawExpenseData
+    return rawExpenseData.filter((item) => item.category === selectedCategory)
+  }, [rawExpenseData, selectedCategory])
+
   const totalExpenses = useMemo(
     () => expenseData.reduce((sum, item) => sum + Number(item.total_amount || 0), 0),
-    [expenseData]
-  )
-
-  const totalBoxes = useMemo(
-    () =>
-      expenseData.reduce((sum, item) => sum + calcLinesTotal(item.lines).totalQuantity, 0),
     [expenseData]
   )
 
@@ -72,52 +89,60 @@ export function JuiceExpenses() {
       cell: (row) => <span className="font-medium text-app-primary">{formatDate(row.date)}</span>,
     },
     {
-      header: 'Description',
-      accessorKey: 'description',
+      header: 'Category',
+      accessorKey: 'category',
       sortable: true,
-      cell: (row) => (
-        <div>
-          <p className="font-semibold text-app-primary">{row.description}</p>
-          {row.notes && <p className="max-w-xs truncate text-xs text-app-secondary">{row.notes}</p>}
-        </div>
-      ),
-    },
-    {
-      header: 'Boxes',
-      accessorKey: 'lines',
-      cell: (row) => (
-        <div>
-          <span className="font-medium text-app-primary">{formatLinesSummary(row.lines)}</span>
-          <span className="block text-xs text-app-muted">
-            {calcLinesTotal(row.lines).totalQuantity} box{calcLinesTotal(row.lines).totalQuantity === 1 ? '' : 'es'} total
-          </span>
-        </div>
-      ),
-    },
-    {
-      header: 'Prices',
       cell: (row) => {
-        const { lines } = calcLinesTotal(row.lines)
+        const color = CATEGORY_COLORS[row.category] || '#6b7280'
         return (
-          <div className="space-y-0.5 text-xs text-app-secondary">
-            {lines.map((line) => (
-              <div key={`${line.size}-${line.quantity}`}>
-                {line.size}: {formatCurrency(line.price_per_unit)}/box
-              </div>
-            ))}
-          </div>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ring-inset"
+            style={{
+              backgroundColor: `${color}18`,
+              color,
+              borderColor: `${color}30`,
+            }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+            {CATEGORY_LABELS[row.category] || row.category}
+          </span>
         )
       },
     },
     {
-      header: 'Total',
+      header: 'Description',
+      accessorKey: 'description',
+      sortable: true,
+      className: 'min-w-[8rem] max-w-[14rem]',
+      cell: (row) => (
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-app-primary">{row.description}</p>
+          {row.lines?.length > 0 && (
+            <p className="truncate text-xs text-app-secondary">{formatLinesSummary(row.lines)}</p>
+          )}
+          {row.notes && (
+            <p className="truncate text-xs text-app-secondary">{row.notes}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Amount',
       accessorKey: 'total_amount',
       sortable: true,
       className: 'whitespace-nowrap',
-      cell: (row) => <span className="font-medium tabular-nums text-rose-300">{formatCurrency(row.total_amount)}</span>,
+      cell: (row) => (
+        <span className="font-semibold text-rose-300 font-display">{formatCurrency(row.total_amount)}</span>
+      ),
+    },
+    {
+      header: 'Receipt',
+      className: 'hidden md:table-cell',
+      cell: (row) => <ReceiptLink receiptPath={row.receipt_url} />,
     },
     {
       header: '',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -126,20 +151,16 @@ export function JuiceExpenses() {
               setEditingItem(row)
               setModalOpen(true)
             }}
-            className="rounded-lg p-2 text-app-secondary hover:bg-app-hover hover:text-app-primary"
-            title="Edit record"
+            className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white"
+            title="Edit"
           >
             <Pencil size={15} />
           </button>
           <button
             type="button"
-            onClick={() => {
-              setModalOpen(false)
-              setEditingItem(null)
-              setDeleteId(row.id)
-            }}
-            className="rounded-lg p-2 text-app-secondary hover:bg-rose-500/10 hover:text-rose-300"
-            title="Delete record"
+            onClick={() => setDeleteId(row.id)}
+            className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
+            title="Delete"
           >
             <Trash2 size={15} />
           </button>
@@ -149,10 +170,10 @@ export function JuiceExpenses() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
-        eyebrow="Calamansi Juice"
-        title="Expenses"
+        eyebrow="Juice Expenditures"
+        title="Field Expenses"
         actions={
           <PageToolbar
             filter={
@@ -167,15 +188,23 @@ export function JuiceExpenses() {
               />
             }
             actions={
-              <Button
-                onClick={() => {
-                  setEditingItem(null)
-                  setModalOpen(true)
-                }}
-              >
-                <Plus size={16} />
-                Log Expense
-              </Button>
+              <>
+                {rawExpenseData.length > 0 && (
+                  <Button variant="secondary" onClick={() => exportJuiceExpensesCSV(expenseData)}>
+                    <Download size={15} />
+                    <span className="hidden sm:inline">Export CSV</span>
+                  </Button>
+                )}
+                <Button
+                  onClick={() => {
+                    setEditingItem(null)
+                    setModalOpen(true)
+                  }}
+                >
+                  <Plus size={16} />
+                  Log Expense
+                </Button>
+              </>
             }
           />
         }
@@ -183,18 +212,51 @@ export function JuiceExpenses() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Card title="Boxes purchased" value={String(totalBoxes)} subtitle={`${expenseData.length} entries`} icon={Package} color="amber" />
-        <Card title="Total expenses" value={formatCurrency(totalExpenses)} subtitle="All box sizes" icon={PhilippinePeso} color="red" />
+      <div className="surface-panel space-y-3 rounded-2xl p-3.5 sm:p-4 backdrop-blur-md">
+        <div className="flex items-center gap-1.5">
+          <Filter size={14} className="text-amber-400" />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-app-secondary">Category</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('all')}
+            className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
+              selectedCategory === 'all' ? 'pill-active' : 'pill-inactive'
+            }`}
+          >
+            All Types
+          </button>
+          {Object.entries(CATEGORY_LABELS).map(([catKey, catLabel]) => (
+            <button
+              key={catKey}
+              type="button"
+              onClick={() => setSelectedCategory(catKey)}
+              className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
+                selectedCategory === catKey ? 'pill-active' : 'pill-inactive'
+              }`}
+            >
+              {catLabel}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-3 border-t border-app pt-3">
+          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-app-secondary">
+            Category Total
+          </p>
+          <p className="font-display text-lg sm:text-xl font-semibold tabular-nums text-rose-300">
+            {formatCurrency(totalExpenses)}
+          </p>
+        </div>
       </div>
 
       {loading ? (
         <LoadingSpinner text="Loading expense entries…" />
-      ) : expenseData.length === 0 ? (
+      ) : rawExpenseData.length === 0 ? (
         <EmptyState
           icon={PhilippinePeso}
           title="No expenses logged yet"
-          description="Log box purchases by size with price per box."
+          description="Log box purchases, supplies, or labor costs so juice production costs stay accurate."
           action={
             <Button
               onClick={() => {
@@ -207,12 +269,23 @@ export function JuiceExpenses() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={expenseData} searchKeys={['description', 'notes', 'date']} searchPlaceholder="Search description or notes…" />
+        <DataTable
+          columns={columns}
+          data={expenseData}
+          searchKeys={['description', 'category', 'notes', 'date']}
+          searchPlaceholder="Search description or notes…"
+        />
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingItem ? 'Edit expense' : 'New expense'} maxWidth="max-w-lg sm:max-w-xl">
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingItem ? 'Edit Expense Record' : 'Log New Expense'}
+        maxWidth="max-w-lg sm:max-w-xl"
+      >
         <JuiceExpenseForm
           initialData={editingItem}
+          defaultCategory={selectedCategory}
           onSuccess={() => {
             setModalOpen(false)
             refetch()
@@ -227,7 +300,7 @@ export function JuiceExpenses() {
         onConfirm={handleDelete}
         loading={deleting}
         title="Delete this expense entry?"
-        description="This entry will be permanently removed."
+        description="This action cannot be undone. The cost will be removed from financial totals."
         confirmLabel="Delete Expense"
       />
     </div>

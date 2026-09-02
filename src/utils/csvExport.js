@@ -78,6 +78,24 @@ export function exportExpensesCSV(data) {
 }
 
 /**
+ * Export juice module expenses to CSV
+ */
+export function exportJuiceExpensesCSV(data) {
+  const columns = [
+    { label: 'Date', accessor: (r) => formatDate(r.date) },
+    { label: 'Category', accessor: (r) => CATEGORY_LABELS[r.category] || r.category },
+    { label: 'Description', accessor: (r) => r.description },
+    { label: 'Boxes', accessor: (r) => {
+      if (!Array.isArray(r.lines) || r.lines.length === 0) return ''
+      return r.lines.map((line) => `${line.quantity}× ${line.size} @ ₱${line.price_per_unit}`).join('; ')
+    }},
+    { label: 'Total Amount (₱)', accessor: (r) => r.total_amount },
+    { label: 'Notes', accessor: (r) => r.notes },
+  ]
+  downloadCSV(toCSV(data, columns), `jg-farm-juice-expenses-${new Date().toISOString().split('T')[0]}.csv`)
+}
+
+/**
  * Export harvests data to CSV
  */
 export function exportHarvestsCSV(data) {

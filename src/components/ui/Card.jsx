@@ -35,8 +35,8 @@ export function Card({ title, value, subtitle, icon: Icon, color = 'emerald' }) 
           </div>
         )}
       </div>
-      <p className={`relative z-10 mt-1.5 truncate font-display text-lg font-semibold tracking-tight tabular-nums sm:mt-2 sm:text-xl lg:text-2xl ${selected.text || 'text-app-primary'}`}>{value}</p>
-      {subtitle && <p className="relative z-10 mt-0.5 truncate text-[10px] text-app-muted sm:mt-1 sm:text-[11px]">{subtitle}</p>}
+      <p className={`relative z-10 mt-1.5 break-words font-display text-lg font-semibold leading-tight tracking-tight tabular-nums sm:mt-2 sm:text-xl lg:text-2xl ${selected.text || 'text-app-primary'}`}>{value}</p>
+      {subtitle && <p className="relative z-10 mt-0.5 line-clamp-2 text-[10px] leading-snug text-app-muted sm:mt-1 sm:text-[11px]">{subtitle}</p>}
     </div>
   )
 }

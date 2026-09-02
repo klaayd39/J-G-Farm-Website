@@ -1,5 +1,10 @@
 import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Search, X } from 'lucide-react'
+import { TABLE_STICKY_HEADER } from '../../constants/tableColumns'
+
+function isStickyColumn(className = '') {
+  return className.includes('sticky')
+}
 
 export function DataTable({
   columns,
@@ -7,6 +12,7 @@ export function DataTable({
   pageSize = 10,
   searchPlaceholder = 'Search records...',
   searchKeys = [],
+  minWidth = 640,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -52,7 +58,7 @@ export function DataTable({
       {searchKeys.length > 0 && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
-            <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
             <input
               type="search"
               placeholder={searchPlaceholder}
@@ -67,14 +73,14 @@ export function DataTable({
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-primary"
                 aria-label="Clear search"
               >
                 <X size={14} />
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 self-end sm:self-auto">
+          <div className="flex items-center gap-2 self-end text-xs font-medium text-app-secondary sm:self-auto">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
             <span>
               {sortedData.length} {sortedData.length === 1 ? 'record found' : 'records found'}
@@ -83,15 +89,18 @@ export function DataTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-app bg-app-surface/80 shadow-xl backdrop-blur-md">
+      <div className="table-scroll-hint overflow-hidden rounded-2xl border border-app bg-app-surface/80 shadow-xl backdrop-blur-md">
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <table className="w-full min-w-[640px] text-left text-sm text-app-secondary">
-            <thead className="border-b border-app bg-app-hover text-[11px] font-semibold uppercase tracking-[0.12em] text-app-muted">
+          <table
+            className="w-full text-left text-sm text-app-secondary"
+            style={{ minWidth: `${minWidth}px` }}
+          >
+            <thead className={`border-b border-app bg-app-hover text-[11px] font-semibold uppercase tracking-[0.12em] text-app-muted ${TABLE_STICKY_HEADER}`}>
               <tr>
                 {columns.map((col, idx) => (
                   <th
                     key={idx}
-                    className={`px-3 py-3 align-middle sm:px-4 sm:py-3.5 ${col.sortable ? 'cursor-pointer select-none transition-colors hover:text-emerald-300' : ''} ${col.className || ''}`}
+                    className={`px-3 py-3 align-middle sm:px-4 sm:py-3.5 ${col.sortable ? 'cursor-pointer select-none transition-colors hover:text-emerald-400' : ''} ${isStickyColumn(col.className || '') ? 'table-sticky-hover' : ''} ${col.className || ''}`}
                     onClick={() => col.sortable && handleSort(col.accessorKey)}
                   >
                     <div className="flex items-center gap-1.5">
@@ -104,7 +113,7 @@ export function DataTable({
                             <ArrowDown size={13} className="text-emerald-400" />
                           )
                         ) : (
-                          <ArrowUpDown size={12} className="text-slate-500 opacity-60" />
+                          <ArrowUpDown size={12} className="text-app-muted opacity-60" />
                         )
                       )}
                     </div>
@@ -115,7 +124,7 @@ export function DataTable({
             <tbody className="divide-y divide-app">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-4 py-12 text-center text-sm text-slate-500">
+                  <td colSpan={columns.length} className="px-4 py-12 text-center text-sm text-app-muted">
                     No matching records found.
                   </td>
                 </tr>
@@ -125,7 +134,7 @@ export function DataTable({
                     {columns.map((col, colIdx) => (
                       <td
                         key={colIdx}
-                        className={`px-3 py-3 sm:px-4 sm:py-3.5 ${col.className || ''} ${col.className?.includes('sticky') ? 'group-hover:bg-[#0c0c0c]/95' : ''}`}
+                        className={`px-3 py-3 align-top sm:px-4 sm:py-3.5 ${col.className || ''} ${isStickyColumn(col.className || '') ? 'table-sticky-hover' : ''}`}
                       >
                         {col.cell ? col.cell(row) : row[col.accessorKey]}
                       </td>
@@ -139,30 +148,30 @@ export function DataTable({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex flex-col gap-3 px-1 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 px-1 text-xs text-app-secondary sm:flex-row sm:items-center sm:justify-between">
           <span className="text-center sm:text-left">
-            Showing <strong className="font-semibold text-slate-200">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
-            <strong className="font-semibold text-slate-200">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{' '}
-            <strong className="font-semibold text-slate-200">{sortedData.length}</strong>
+            Showing <strong className="font-semibold text-app-primary">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+            <strong className="font-semibold text-app-primary">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{' '}
+            <strong className="font-semibold text-app-primary">{sortedData.length}</strong>
           </span>
           <div className="flex items-center justify-center gap-1.5 sm:justify-end">
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-app bg-app-hover transition-colors hover:bg-app-surface disabled:pointer-events-none disabled:opacity-30"
               aria-label="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="min-w-14 text-center font-medium text-slate-300">
-              {currentPage} <span className="text-slate-600">/</span> {totalPages}
+            <span className="min-w-14 text-center font-medium text-app-primary">
+              {currentPage} <span className="text-app-muted">/</span> {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-app bg-app-hover transition-colors hover:bg-app-surface disabled:pointer-events-none disabled:opacity-30"
               aria-label="Next page"
             >
               <ChevronRight size={16} />

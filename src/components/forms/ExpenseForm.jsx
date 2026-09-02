@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { todayISO, CATEGORY_LABELS } from '../../utils/formatters'
+import { formatCurrency, todayISO, CATEGORY_LABELS } from '../../utils/formatters'
 import { getReceiptSignedUrl, normalizeReceiptPath, deleteReceipt } from '../../utils/receiptStorage'
 import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
+import { FormActions } from '../ui/FormPrimitives'
 
 export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer', onSuccess, onCancel }) {
   const { user } = useAuth()
@@ -183,14 +184,14 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
 
         <div>
           <label className="field-label">Receipt / Voucher Photo</label>
-          <div className="flex items-center gap-2">
-            <label className="flex min-h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.03] px-3.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-400 hover:bg-emerald-500/5 hover:text-white">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="flex min-h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-app bg-app-hover px-3.5 py-2 text-xs font-medium text-app-secondary transition-colors hover:border-emerald-400/40 hover:text-app-primary">
               <UploadCloud size={16} className="text-emerald-400" />
               <span>{uploading ? 'Uploading…' : receiptUrl ? 'Change Receipt' : 'Upload Receipt'}</span>
               <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </label>
             {receiptUrl && receiptPreviewUrl && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-end gap-1.5 sm:shrink-0">
                 <a
                   href={receiptPreviewUrl}
                   target="_blank"
@@ -236,7 +237,7 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
         />
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-2.5 pt-2">
+      <FormActions>
         {onCancel && (
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
@@ -245,7 +246,7 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
         <Button type="submit" disabled={loading || uploading}>
           {loading ? 'Saving expense…' : initialData ? 'Update Expense' : 'Save Expense Record'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

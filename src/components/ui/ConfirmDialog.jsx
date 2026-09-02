@@ -12,7 +12,7 @@ export function ConfirmDialog({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title} maxWidth="max-w-md">
-      <p className="text-sm leading-relaxed text-slate-400">{description}</p>
+      <p className="text-sm leading-relaxed text-app-secondary">{description}</p>
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={onClose} disabled={loading} className="w-full sm:w-auto">
           Cancel

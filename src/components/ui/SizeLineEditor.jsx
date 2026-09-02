@@ -35,22 +35,22 @@ export function SizeLineEditor({
           const subtotal = qty > 0 && price > 0 ? qty * price : 0
 
           return (
-            <div key={index} className="rounded-xl border border-app bg-app-hover p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
+            <div key={index} className="rounded-xl border border-app bg-app-hover p-3 sm:p-3.5">
+              <div className="mb-2.5 flex items-center justify-between gap-2">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-app-muted">
                   Line {index + 1}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeLine(index)}
-                  className="rounded-lg p-1.5 text-app-secondary hover:bg-rose-500/10 hover:text-rose-400"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-app-secondary hover:bg-rose-500/10 hover:text-rose-400"
                   aria-label="Remove line"
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <div className="sm:col-span-1">
+              <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
+                <div>
                   <label className="field-label">{sizeLabel}</label>
                   <input
                     type="text"

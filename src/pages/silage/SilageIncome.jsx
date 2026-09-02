@@ -18,6 +18,7 @@ import { useQueryErrorToast } from '../../hooks/useQueryErrorToast'
 import { supabase } from '../../lib/supabase'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import { calcSilageSale, formatSilageSaleSummary } from '../../utils/silageUnits'
+import { TABLE_STICKY_ACTIONS } from '../../constants/tableColumns'
 import toast from 'react-hot-toast'
 
 export function SilageIncome() {
@@ -145,6 +146,7 @@ export function SilageIncome() {
     },
     {
       header: '',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -176,7 +178,7 @@ export function SilageIncome() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Super Napier Silage"
         title="Income Ledger"

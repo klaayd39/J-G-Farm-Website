@@ -35,9 +35,11 @@ CREATE TABLE IF NOT EXISTS juice_expenses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
+  category expense_category NOT NULL DEFAULT 'other',
   description TEXT NOT NULL DEFAULT '',
   lines JSONB NOT NULL DEFAULT '[]'::jsonb,
   total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+  receipt_url TEXT DEFAULT '',
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now(),
   CONSTRAINT juice_expenses_lines_array CHECK (jsonb_typeof(lines) = 'array')
@@ -63,3 +65,4 @@ CREATE POLICY "Users can delete own juice expenses"
 
 CREATE INDEX IF NOT EXISTS idx_juice_sales_user_date ON juice_sales(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_juice_expenses_user_date ON juice_expenses(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_juice_expenses_category ON juice_expenses(user_id, category);

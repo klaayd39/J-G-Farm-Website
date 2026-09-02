@@ -19,6 +19,7 @@ import { supabase } from '../lib/supabase'
 import { formatCurrency, formatWeight, formatDate, formatTime, formatDateTime, formatUserLabel } from '../utils/formatters'
 import { formatRedBagTotal, formatHarvestRedBags, isCombinedIncomeSale } from '../utils/farmUnits'
 import { exportIncomeCSV } from '../utils/csvExport'
+import { TABLE_STICKY_ACTIONS } from '../constants/tableColumns'
 import toast from 'react-hot-toast'
 
 export function Income() {
@@ -229,7 +230,7 @@ export function Income() {
     },
     {
       header: '',
-      className: 'align-top w-16 text-right sticky right-0 bg-[#0a0a0a]/95 backdrop-blur-sm',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-0.5">
           <button type="button" onClick={() => { setEditingItem(row); setModalOpen(true) }} className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white" title="Edit record">
@@ -244,7 +245,7 @@ export function Income() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Commercial Sales"
         title="Income Ledger"

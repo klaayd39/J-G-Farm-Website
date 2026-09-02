@@ -151,7 +151,7 @@ export function Reports() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Financial Intelligence"
         title="Reports & Ledger"
@@ -188,49 +188,49 @@ export function Reports() {
         <LoadingSpinner text="Compiling financial statement…" />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
-              <div className="flex items-center justify-between text-slate-400">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+            <div className="surface-panel rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between text-app-secondary">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Gross Income</span>
                 <TrendingUp size={18} className="text-emerald-400/80" />
               </div>
-              <p className="mt-2 font-display text-2xl font-semibold text-emerald-300">{formatCurrency(totalIncome)}</p>
-              <p className="mt-1 text-xs text-slate-400">{formatWeight(totalKgSold)} calamansi sold</p>
+              <p className="mt-2 font-display text-xl sm:text-2xl font-semibold tabular-nums text-emerald-300">{formatCurrency(totalIncome)}</p>
+              <p className="mt-1 text-xs text-app-secondary">{formatWeight(totalKgSold)} calamansi sold</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="surface-panel rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between text-app-secondary">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Total Expenses</span>
                 <TrendingDown size={18} className="text-rose-400/80" />
               </div>
-              <p className="mt-2 font-display text-2xl font-semibold text-rose-300">{formatCurrency(totalExpense)}</p>
-              <p className="mt-1 text-xs text-slate-400">{expenseData.length} expense transactions</p>
+              <p className="mt-2 font-display text-xl sm:text-2xl font-semibold tabular-nums text-rose-300">{formatCurrency(totalExpense)}</p>
+              <p className="mt-1 text-xs text-app-secondary">{expenseData.length} expense transactions</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="surface-panel rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between text-app-secondary">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Net Position</span>
                 <PhilippinePeso size={18} className={netProfit >= 0 ? 'text-emerald-400/80' : 'text-amber-400/80'} />
               </div>
-              <p className={`mt-2 font-display text-2xl font-semibold ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
+              <p className={`mt-2 font-display text-xl sm:text-2xl font-semibold tabular-nums ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
                 {formatCurrency(netProfit)}
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-app-secondary">
                 {totalIncome > 0 ? `${((netProfit / totalIncome) * 100).toFixed(1)}% operating margin` : 'No income in period'}
               </p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-gradient-to-b from-[#0a0a0a]/90 to-[#0a0a0a]/90 p-5 shadow-lg backdrop-blur-md">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="surface-panel rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between text-app-secondary">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em]">Statement Lines</span>
                 <ListChecks size={18} className="text-sky-400/80" />
               </div>
-              <p className="mt-2 font-display text-2xl font-semibold text-white">{combinedTransactions.length}</p>
-              <p className="mt-1 text-xs text-slate-400">Transactions within filter</p>
+              <p className="mt-2 font-display text-xl sm:text-2xl font-semibold tabular-nums text-app-primary">{combinedTransactions.length}</p>
+              <p className="mt-1 text-xs text-app-secondary">Transactions within filter</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
             <Panel className="lg:col-span-2" title="Period Cash Flow" description="Monthly breakdown of revenue vs expenditure">
               <IncomeExpenseChart data={monthlyChartData} />
             </Panel>
@@ -239,12 +239,10 @@ export function Reports() {
             </Panel>
           </div>
 
-          <div className="space-y-3.5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-white">Full Consolidated Ledger</h2>
-                <p className="text-xs text-slate-400">Unified chronology of farm sales and operational expenses</p>
-              </div>
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-app-primary">Full Consolidated Ledger</h2>
+              <p className="text-xs text-app-secondary">Unified chronology of farm sales and operational expenses</p>
             </div>
             <DataTable columns={columns} data={combinedTransactions} searchKeys={['title', 'category', 'subtitle', 'date']} searchPlaceholder="Search the ledger…" />
           </div>

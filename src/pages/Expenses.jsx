@@ -24,6 +24,7 @@ import {
   CATEGORY_COLORS,
 } from '../utils/formatters'
 import { exportExpensesCSV } from '../utils/csvExport'
+import { TABLE_STICKY_ACTIONS } from '../constants/tableColumns'
 import toast from 'react-hot-toast'
 
 export function Expenses() {
@@ -84,7 +85,7 @@ export function Expenses() {
       header: 'Date',
       accessorKey: 'date',
       sortable: true,
-      cell: (row) => <span className="font-medium text-white">{formatDate(row.date)}</span>,
+      cell: (row) => <span className="font-medium text-app-primary">{formatDate(row.date)}</span>,
     },
     {
       header: 'Category',
@@ -111,10 +112,11 @@ export function Expenses() {
       header: 'Description',
       accessorKey: 'description',
       sortable: true,
+      className: 'min-w-[8rem] max-w-[14rem]',
       cell: (row) => (
-        <div>
-          <p className="font-semibold text-white">{row.description}</p>
-          {row.notes && <p className="max-w-xs truncate text-xs text-slate-400">{row.notes}</p>}
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-app-primary">{row.description}</p>
+          {row.notes && <p className="truncate text-xs text-app-secondary">{row.notes}</p>}
         </div>
       ),
     },
@@ -122,14 +124,17 @@ export function Expenses() {
       header: 'Amount',
       accessorKey: 'amount',
       sortable: true,
+      className: 'whitespace-nowrap',
       cell: (row) => <span className="font-semibold text-rose-300 font-display">{formatCurrency(row.amount)}</span>,
     },
     {
       header: 'Receipt',
+      className: 'hidden md:table-cell',
       cell: (row) => <ReceiptLink receiptPath={row.receipt_url} />,
     },
     {
       header: '',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -157,7 +162,7 @@ export function Expenses() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Farm Expenditures"
         title="Field Expenses"
@@ -189,39 +194,37 @@ export function Expenses() {
 
       {error && <QueryError message={error} onRetry={refetch} />}
 
-      <div className="flex flex-col gap-3 rounded-2xl surface-panel p-3.5 sm:p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 overflow-x-auto pb-1 sm:pb-0 min-w-0">
-          <div className="flex shrink-0 items-center gap-1 text-slate-400 pr-1">
-            <Filter size={14} className="text-emerald-400" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Category</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5 min-w-0">
+      <div className="surface-panel space-y-3 rounded-2xl p-3.5 sm:p-4 backdrop-blur-md">
+        <div className="flex items-center gap-1.5">
+          <Filter size={14} className="text-emerald-400" />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-app-secondary">Category</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('all')}
+            className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
+              selectedCategory === 'all' ? 'pill-active' : 'pill-inactive'
+            }`}
+          >
+            All Types
+          </button>
+          {Object.entries(CATEGORY_LABELS).map(([catKey, catLabel]) => (
             <button
+              key={catKey}
               type="button"
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => setSelectedCategory(catKey)}
               className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
-                selectedCategory === 'all' ? 'pill-active' : 'pill-inactive'
+                selectedCategory === catKey ? 'pill-active' : 'pill-inactive'
               }`}
             >
-              All Types
+              {catLabel}
             </button>
-            {Object.entries(CATEGORY_LABELS).map(([catKey, catLabel]) => (
-              <button
-                key={catKey}
-                type="button"
-                onClick={() => setSelectedCategory(catKey)}
-                className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold transition-all ${
-                  selectedCategory === catKey ? 'pill-active' : 'pill-inactive'
-                }`}
-              >
-                {catLabel}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
-        <div className="flex items-center justify-between sm:flex-col sm:items-end shrink-0 border-t border-app pt-2.5 sm:border-0 sm:pt-0">
+        <div className="flex items-center justify-between gap-3 border-t border-app pt-3">
           <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-app-secondary">Category Total</p>
-          <p className="font-display text-lg sm:text-xl font-semibold text-rose-300">{formatCurrency(totalExpenses)}</p>
+          <p className="font-display text-lg sm:text-xl font-semibold tabular-nums text-rose-300">{formatCurrency(totalExpenses)}</p>
         </div>
       </div>
 

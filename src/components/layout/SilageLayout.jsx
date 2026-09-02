@@ -44,7 +44,7 @@ export function SilageLayout() {
           </div>
         </header>
 
-        <main className="main-with-mobile-nav flex-1 px-3 py-5 sm:px-5 sm:py-6 md:px-8 md:py-8 md:pb-10">
+        <main className="main-with-mobile-nav flex-1 px-4 py-5 sm:px-6 sm:py-6 md:px-8 md:py-8 md:pb-10">
           <div className="mx-auto w-full min-w-0 max-w-7xl">
             <Outlet />
           </div>

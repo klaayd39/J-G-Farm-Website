@@ -18,6 +18,7 @@ import { useQueryErrorToast } from '../../hooks/useQueryErrorToast'
 import { supabase } from '../../lib/supabase'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import { calcLinesTotal, formatLinesSummary } from '../../utils/juiceUnits'
+import { TABLE_STICKY_ACTIONS } from '../../constants/tableColumns'
 import toast from 'react-hot-toast'
 
 export function JuiceSales() {
@@ -118,6 +119,7 @@ export function JuiceSales() {
     },
     {
       header: '',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -149,7 +151,7 @@ export function JuiceSales() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Calamansi Juice"
         title="Sales Ledger"

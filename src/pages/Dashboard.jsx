@@ -120,7 +120,7 @@ export function Dashboard() {
   }, [incomeData, expenseData])
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Executive Dashboard"
         title={`Welcome back, ${firstName}`}
@@ -156,7 +156,7 @@ export function Dashboard() {
         <LoadingSpinner text="Computing orchard figures…" />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
             <Card title="Harvest Picked" value={formatWeight(totalHarvestKg)} subtitle={`${harvestData.length} picking batches`} icon={Trees} color="blue" />
             <Card title="Field Expenses" value={formatCurrency(totalExpense)} subtitle={`${expenseData.length} recorded items`} icon={PhilippinePeso} color="red" />
             <Card title="Gross Revenue" value={formatCurrency(totalIncome)} subtitle={`${incomeData.length} buyer sales`} icon={TrendingUp} color="emerald" />
@@ -199,7 +199,7 @@ export function Dashboard() {
                   {recentTransactions.map((tx) => {
                     const isIncome = tx.txType === 'income'
                     return (
-                      <div key={`${tx.txType}-${tx.id}`} className="group flex items-center justify-between gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-white/[0.025]">
+                      <div key={`${tx.txType}-${tx.id}`} className="group flex flex-col gap-2 rounded-xl px-2 py-3 transition-colors hover:bg-app-hover sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                         <div className="flex min-w-0 items-center gap-3">
                           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isIncome ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/25' : 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/25'}`}>
                             {isIncome ? <ArrowUpRight size={17} /> : <ArrowDownRight size={17} />}

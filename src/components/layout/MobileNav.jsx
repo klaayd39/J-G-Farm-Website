@@ -3,8 +3,8 @@ import { NAV_ITEMS } from '../../nav'
 
 export function MobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-app bg-app-header px-1 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex h-14 max-w-md items-stretch justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-app bg-app-header px-2 pt-1 backdrop-blur-lg md:hidden pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex h-14 max-w-lg items-stretch justify-around gap-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
@@ -27,7 +27,7 @@ export function MobileNav() {
                   >
                     <Icon size={18} strokeWidth={isActive ? 2.2 : 1.75} />
                   </span>
-                  <span className="max-w-[60px] truncate text-center leading-none text-[9px] sm:text-[10px]">{item.label}</span>
+                  <span className="max-w-[4.25rem] truncate text-center leading-none text-[9px] sm:max-w-[4.75rem] sm:text-[10px]">{item.label}</span>
                 </>
               )}
             </NavLink>

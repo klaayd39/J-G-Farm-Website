@@ -29,22 +29,22 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' })
       onClick={handleBackdropClick}
       className={cn(
         maxWidth,
-        'm-auto max-h-[min(90dvh,720px)] w-[calc(100%-0.75rem)] flex-col overflow-hidden rounded-xl border border-app bg-app-surface p-0 text-app shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
+        'm-auto max-h-[min(90dvh,720px)] w-[calc(100%-1.5rem)] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-xl border border-app bg-app-surface p-0 text-app shadow-xl backdrop:bg-black/70 backdrop:backdrop-blur-sm sm:w-[calc(100%-2rem)]',
         open ? 'flex' : 'hidden'
       )}
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-app px-4 py-3 sm:px-5 sm:py-3.5">
-        <h2 className="truncate pr-3 text-sm font-medium text-app-primary">{title}</h2>
+      <div className="flex shrink-0 items-center justify-between border-b border-app px-4 py-3.5 sm:px-5">
+        <h2 className="min-w-0 flex-1 truncate pr-3 text-sm font-medium text-app-primary sm:text-base">{title}</h2>
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/8 hover:text-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-app-secondary transition-colors hover:bg-app-hover hover:text-app-primary"
           aria-label="Close"
         >
           <X size={18} />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-safe sm:px-5 sm:py-5">
         {open ? children : null}
       </div>
     </dialog>

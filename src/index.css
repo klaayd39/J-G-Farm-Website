@@ -324,7 +324,53 @@ dialog::backdrop {
 }
 
 .main-with-mobile-nav {
-  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .page-stack {
+    gap: 1.5rem;
+  }
+}
+
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.table-scroll-hint {
+  position: relative;
+}
+
+.table-scroll-hint::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1.5rem;
+  background: linear-gradient(to left, var(--app-surface), transparent);
+  opacity: 0.85;
+}
+
+@media (min-width: 768px) {
+  .table-scroll-hint::after {
+    display: none;
+  }
+}
+
+.table-sticky-hover {
+  background-color: color-mix(in oklab, var(--app-surface) 95%, transparent);
+}
+
+.group:hover .table-sticky-hover {
+  background-color: var(--app-surface);
 }
 
 @media (min-width: 768px) {

@@ -19,7 +19,7 @@ import { supabase } from '../lib/supabase'
 import { formatWeight, formatDate } from '../utils/formatters'
 import { formatHarvestRedBags, formatRedBagTotal, getHarvestKg } from '../utils/farmUnits'
 import { exportHarvestsCSV } from '../utils/csvExport'
-import toast from 'react-hot-toast'
+import { TABLE_STICKY_ACTIONS } from '../constants/tableColumns'
 
 export function Harvests() {
   const [modalOpen, setModalOpen] = useState(false)
@@ -95,6 +95,7 @@ export function Harvests() {
     },
     {
       header: '',
+      className: TABLE_STICKY_ACTIONS,
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <button type="button" onClick={() => { setEditingItem(row); setModalOpen(true) }} className="rounded-lg p-2 text-slate-400 hover:bg-white/8 hover:text-white" title="Edit batch">
@@ -109,7 +110,7 @@ export function Harvests() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         eyebrow="Orchard Yield"
         title="Harvest Batches"

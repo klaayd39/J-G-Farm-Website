@@ -100,7 +100,7 @@ export function FormTotal({ label, amount, lines = [] }) {
 
 export function FormActions({ children, className = '' }) {
   return (
-    <div className={cn('flex items-center justify-end gap-2 border-t border-app pt-4', className)}>
+    <div className={cn('flex flex-col-reverse gap-2 border-t border-app pt-4 sm:flex-row sm:items-center sm:justify-end [&>*]:w-full [&>*]:sm:w-auto', className)}>
       {children}
     </div>
   )
