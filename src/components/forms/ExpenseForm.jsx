@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { Button } from '../ui/Button'
 import { FormActions } from '../ui/FormPrimitives'
 
-export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer', onSuccess, onCancel }) {
+export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer', table = 'expenses', onSuccess, onCancel }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -110,11 +110,11 @@ export function ExpenseForm({ initialData = null, defaultCategory = 'fertilizer'
       }
 
       if (initialData?.id) {
-        const { error } = await supabase.from('expenses').update(payload).eq('id', initialData.id)
+        const { error } = await supabase.from(table).update(payload).eq('id', initialData.id)
         if (error) throw error
         toast.success('Expense updated!')
       } else {
-        const { error } = await supabase.from('expenses').insert([payload])
+        const { error } = await supabase.from(table).insert([payload])
         if (error) throw error
         toast.success('Expense logged successfully!')
       }

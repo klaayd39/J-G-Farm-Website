@@ -96,6 +96,20 @@ export function exportJuiceExpensesCSV(data) {
 }
 
 /**
+ * Export silage module expenses to CSV
+ */
+export function exportSilageExpensesCSV(data) {
+  const columns = [
+    { label: 'Date', accessor: (r) => formatDate(r.date) },
+    { label: 'Category', accessor: (r) => CATEGORY_LABELS[r.category] || r.category },
+    { label: 'Description', accessor: (r) => r.description },
+    { label: 'Amount (₱)', accessor: (r) => r.amount },
+    { label: 'Notes', accessor: (r) => r.notes },
+  ]
+  downloadCSV(toCSV(data, columns), `jg-farm-silage-expenses-${new Date().toISOString().split('T')[0]}.csv`)
+}
+
+/**
  * Export harvests data to CSV
  */
 export function exportHarvestsCSV(data) {

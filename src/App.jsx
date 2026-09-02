@@ -11,6 +11,7 @@ import { JuiceExpenses } from './pages/juice/JuiceExpenses'
 import { SilageLayout } from './components/layout/SilageLayout'
 import { SilageHarvests } from './pages/silage/SilageHarvests'
 import { SilageIncome } from './pages/silage/SilageIncome'
+import { SilageExpenses } from './pages/silage/SilageExpenses'
 import { Dashboard } from './pages/Dashboard'
 import { Income } from './pages/Income'
 import { Expenses } from './pages/Expenses'
@@ -129,6 +130,7 @@ export function App() {
           <Route index element={<Navigate to="harvests" replace />} />
           <Route path="harvests" element={<SilageHarvests />} />
           <Route path="income" element={<SilageIncome />} />
+          <Route path="expenses" element={<SilageExpenses />} />
         </Route>
         <Route
           path="/"
