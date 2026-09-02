@@ -5,6 +5,9 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { AppLayout } from './components/layout/AppLayout'
 import { Login } from './pages/Login'
 import { ModuleSelect } from './pages/ModuleSelect'
+import { JuiceLayout } from './components/layout/JuiceLayout'
+import { JuiceSales } from './pages/juice/JuiceSales'
+import { JuiceExpenses } from './pages/juice/JuiceExpenses'
 import { SilageLayout } from './components/layout/SilageLayout'
 import { SilageHarvests } from './pages/silage/SilageHarvests'
 import { SilageIncome } from './pages/silage/SilageIncome'
@@ -99,7 +102,20 @@ export function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/juice/*" element={<Navigate to={MODULE_SELECT_PATH} replace />} />
+        <Route
+          path="/juice"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <JuiceLayout />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="sales" replace />} />
+          <Route path="sales" element={<JuiceSales />} />
+          <Route path="expenses" element={<JuiceExpenses />} />
+        </Route>
         <Route
           path="/silage"
           element={
